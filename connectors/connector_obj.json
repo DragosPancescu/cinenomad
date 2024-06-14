@@ -1,0 +1,10 @@
+[
+    {
+        "image_path": "resources/Netflix_Button.png",
+        "text": "Netflix"
+    },
+    {
+        "image_path": "resources/SDD_Button.png",
+        "text": "SDD"
+    }
+]

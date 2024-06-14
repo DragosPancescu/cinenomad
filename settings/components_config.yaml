@@ -1,0 +1,99 @@
+App:
+  background: "#282828"
+
+AppControlButton: &appcontrolbutton
+  borderwidth: 0
+  background: "#282828"
+  highlightthickness: 0
+  activebackground: "#282828"
+  cursor: hand2
+  relief: sunken
+
+CloseButton:
+  Design:
+    width: 40
+    height: 40
+    image_path: resources/X_Button.png
+    <<: *appcontrolbutton
+  Placement:
+    relx: 1
+    rely: 0
+    x: -15
+    y: 5
+    anchor: ne
+
+SleepButton:
+  Design:
+    width: 40
+    height: 40
+    image_path: resources/Sleep_Button.png
+    <<: *appcontrolbutton
+  Placement:
+    relx: 1
+    rely: 0
+    x: -65
+    y: 12
+    anchor: ne
+
+NewConnectorButton:
+  Design:
+    text: Add movie source
+    highlightthickness: 1
+    highlightbackground: "#D9D9D9"
+    borderwidth: 0
+    background: "#282828"
+    foreground: "#D9D9D9"
+    activebackground: "#D9D9D9"
+    width: 22
+    height: 2
+    relief: sunken
+    cursor: hand2
+    font:
+      - Roboto Mono
+      - 12
+  Placement:
+    relx: 0.5
+    rely: 0.5
+    y: 175
+    anchor: center
+
+ConnectorIcon:
+  Design:
+    highlightthickness: 1
+    highlightbackground: "#282828"
+    borderwidth: 0
+    width: 250
+    height: 250
+    relief: sunken
+    cursor: hand2
+    background: "#282828"
+    activebackground: "#282828"
+    font:
+      - Roboto Mono
+      - 12
+  Placement:
+    row: 0
+    padx: 25
+
+ConnectorLabel:
+  Design:
+    background: "#282828"
+    foreground: "#D9D9D9"
+    font:
+      - Roboto Mono
+      - 12
+  Placement:
+    row: 1
+    padx: 25
+    pady: 20
+
+ConnectorsFrame:
+  Design:
+    background: "#282828"
+    width: 500
+    height: 300
+  Placement:
+    relx: 0.5
+    rely: 0.5
+    y: -100
+    anchor: center
