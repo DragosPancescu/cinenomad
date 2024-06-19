@@ -97,3 +97,38 @@ ConnectorsFrame:
     rely: 0.5
     y: -100
     anchor: center
+
+AddMovieSourceModal:
+  title: "Add new movie source"
+  Design:
+    background: "#282828"
+    highlightthickness: 1
+    highlightbackground: "#D9D9D9"
+  Buttons:
+    Design: &addMovieSourceModalButtonDesign
+      highlightthickness: 1
+      highlightbackground: "#D9D9D9"
+      borderwidth: 0
+      background: "#282828"
+      foreground: "#D9D9D9"
+      activebackground: "#D9D9D9"
+      cursor: hand2
+    Placement: &addMovieSourceModalButtonPlacement
+      relx: 0.5
+      rely: 0.5
+      anchor: center
+      y: 100
+  AddButton:
+    text: "Add"
+    Design:
+      <<: *addMovieSourceModalButtonDesign
+    Placement:
+      x: -40
+      <<: *addMovieSourceModalButtonPlacement
+  CancelButton:
+    text: "Cancel"
+    Design:
+      <<: *addMovieSourceModalButtonDesign
+    Placement:
+      x: 40
+      <<: *addMovieSourceModalButtonPlacement

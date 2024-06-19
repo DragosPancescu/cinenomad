@@ -68,6 +68,7 @@ class App(tk.Tk):
                 connector["image_path"],
                 connector["text"],
             )
+
             connector_button.grid(
                 column=idx, **self.__configs["ConnectorIcon"]["Placement"]
             )
@@ -82,7 +83,7 @@ class App(tk.Tk):
             )
 
         # Add new connector modal (toplevel)
-        self.new_connector_modal = AddMovieSourceModal(self)
+        self.new_connector_modal = AddMovieSourceModal(self, self.__configs["AddMovieSourceModal"])
         self.new_connector_modal.withdraw() # Keep it hidden
 
         # Render loop

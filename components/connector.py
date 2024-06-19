@@ -21,8 +21,8 @@ class ConnectorIcon(tk.Button):
 
         self.configure(**self.__config_params)
 
-        self.bind("<Enter>", self.__on_enter_highlight)
-        self.bind("<Leave>", self.__on_exit_no_highlight)
+        self.bind("<Enter>", lambda event: self.__on_enter_highlight(event))
+        self.bind("<Leave>", lambda event: self.__on_exit_no_highlight(event))
 
     def __read_icon_image(self, path):
         try:
@@ -31,13 +31,13 @@ class ConnectorIcon(tk.Button):
         except UnidentifiedImageError as err:
             return err
 
-    def __on_enter_highlight(self, e=None):
+    def __on_enter_highlight(self, event):
         self.configure(highlightbackground="#D9D9D9")
-        print(f"Enter: {self.__config_params['text']}")
+        print(f"Enter: {event.widget['text']}")
 
-    def __on_exit_no_highlight(self, e=None):
+    def __on_exit_no_highlight(self, event):
         self.configure(highlightbackground=self.__config_params["highlightbackground"])
-        print(f"Exit: {self.__config_params['text']}")
+        print(f"Exit: {event.widget['text']}")
 
 
 class ConnectorLabel(tk.Label):

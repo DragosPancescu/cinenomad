@@ -2,68 +2,54 @@ import tkinter as tk
 
 
 class AddMovieSourceModal(tk.Toplevel):
-    def __init__(self, parent):
+    def __init__(self, parent, config_params):
         super().__init__(parent)
 
-        # self.__config_params = config_params
+        self.__config_params = config_params
 
-        # self.configure(**self.__config_params)
-
-        self.title("Add new movie source")
+        self.title(self.__config_params["title"])
         self.resizable(False, False)
         self.wm_overrideredirect(True)
-        self.configure(
-            background="#282828", 
-            highlightthickness=1, 
-            highlightbackground="#D9D9D9"
-        )
+        self.configure(**self.__config_params["Design"])
 
         # Controls
         self.bind("<Escape>", self.close)
 
         # Add Button for making selection
-        button1 = tk.Button(
+        AddButton = tk.Button(
             self,
-            text="Add",
-            highlightthickness=1,
-            highlightbackground="#D9D9D9",
-            borderwidth=0,
-            background="#282828",
-            foreground="#D9D9D9",
-            activebackground="#D9D9D9",
-            cursor="hand2",
-            command=lambda: self.handle_user_choice("add"),
+            text=self.__config_params["AddButton"]["text"],
+            command=lambda: self.handle_user_choice(
+                self.__config_params["AddButton"]["text"]
+            ),
+            **self.__config_params["AddButton"]["Design"],
         )
-        button1.place(relx=0.5, rely=0.5, anchor="center", x=-40, y=100)
+        AddButton.place(**self.__config_params["AddButton"]["Placement"])
 
-        button2 = tk.Button(
+        CancelButton = tk.Button(
             self,
-            text="Cancel",
-            highlightthickness=1,
-            highlightbackground="#D9D9D9",
-            borderwidth=0,
-            background="#282828",
-            foreground="#D9D9D9",
-            activebackground="#D9D9D9",
-            cursor="hand2",
-            command=lambda: self.handle_user_choice("cancel"),
+            text=self.__config_params["CancelButton"]["text"],
+            command=lambda: self.handle_user_choice(
+                self.__config_params["CancelButton"]["text"]
+            ),
+            **self.__config_params["CancelButton"]["Design"],
         )
-        button2.place(relx=0.5, rely=0.5, anchor="center", x=40, y=100)
+        CancelButton.place(**self.__config_params["CancelButton"]["Placement"])
         self.__center(parent)
 
     def handle_user_choice(self, choice):
-        if choice == "add":
+        if choice == "Add":
             print("Added new movie source")
         else:
             print("Cancel new movie source")
         self.close()
-        
+
     def __center(self, parent):
         self.geometry("600x300")
 
         parent.update_idletasks()
         self.update_idletasks()
-        
+
         # Get frame dimensions and position
         frame_width = parent.winfo_width()
         frame_height = parent.winfo_height()
