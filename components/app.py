@@ -8,6 +8,7 @@ from .add_movie_source_button import AddMovieSourceButton
 from .connector import ConnectorIcon, ConnectorLabel, ConnectorsFrame
 from .add_movie_source_modal import AddMovieSourceModal
 
+from .strategy.connector_click_strategy import NetflixConnectorClick, LocalConnectorClick, get_strategy_for_connector
 
 class App(tk.Tk):
     def __init__(self):
@@ -17,12 +18,12 @@ class App(tk.Tk):
 
         # Configure
         self.config_path = "settings/components_config.yaml"
-        self.__configs = self._read_config()  # TODO: Check error
+        self._configs = self._read_config()  # TODO: Check error
 
         self.connector_data_path = "connectors/connector_obj.json"
-        self.__connector_data = self._read_connector_data()  # TODO: Check error
+        self._connector_data = self._read_connector_data()  # TODO: Check error
 
-        self.configure(**self.__configs["App"])
+        self.configure(**self._configs["App"])
         self.attributes("-fullscreen", True)
 
         # Controls
@@ -31,59 +32,60 @@ class App(tk.Tk):
         # ----- Widgets
         # Close button
         self.close_button = AppControlButton(
-            self, self.__configs["CloseButton"]["Design"]
+            self, self._configs["CloseButton"]["Design"]
         )
         self.close_button.configure(command=self.close)
-        self.close_button.place(**self.__configs["CloseButton"]["Placement"])
+        self.close_button.place(**self._configs["CloseButton"]["Placement"])
 
         # Sleep button
         self.sleep_button = AppControlButton(
-            self, self.__configs["SleepButton"]["Design"]
+            self, self._configs["SleepButton"]["Design"]
         )
         self.sleep_button.configure(command=lambda: print("Sleep"))
-        self.sleep_button.place(**self.__configs["SleepButton"]["Placement"])
+        self.sleep_button.place(**self._configs["SleepButton"]["Placement"])
 
         # New Connector button
         self.new_connector_button = AddMovieSourceButton(
-            self, self.__configs["NewConnectorButton"]["Design"]
+            self, self._configs["NewConnectorButton"]["Design"]
         )
         self.new_connector_button.place(
-            **self.__configs["NewConnectorButton"]["Placement"]
+            **self._configs["NewConnectorButton"]["Placement"]
         )
         self.new_connector_button.configure(command=self.show_add_new_connector_modal)
 
         # Connectors
         self.connectors_frame = ConnectorsFrame(
             self,
-            self.__configs["ConnectorsFrame"]["Design"],
-            len(self.__connector_data),
+            self._configs["ConnectorsFrame"]["Design"],
+            len(self._connector_data),
         )
-        self.connectors_frame.place(**self.__configs["ConnectorsFrame"]["Placement"])
+        self.connectors_frame.place(**self._configs["ConnectorsFrame"]["Placement"])
 
-        for idx, connector in enumerate(self.__connector_data):
+        for idx, connector in enumerate(self._connector_data):
             # TODO: Check if image is available
             connector_button = ConnectorIcon(
                 self.connectors_frame,
-                self.__configs["ConnectorIcon"]["Design"],
+                self._configs["ConnectorIcon"]["Design"],
                 connector["image_path"],
                 connector["text"],
+                get_strategy_for_connector(connector["text"])
             )
 
             connector_button.grid(
-                column=idx, **self.__configs["ConnectorIcon"]["Placement"]
+                column=idx, **self._configs["ConnectorIcon"]["Placement"]
             )
             
             connector_label = ConnectorLabel(
                 self.connectors_frame,
-                self.__configs["ConnectorLabel"]["Design"],
+                self._configs["ConnectorLabel"]["Design"],
                 connector["text"],
             )
             connector_label.grid(
-                column=idx, **self.__configs["ConnectorLabel"]["Placement"]
+                column=idx, **self._configs["ConnectorLabel"]["Placement"]
             )
 
         # Add new connector modal (toplevel)
-        self.new_connector_modal = AddMovieSourceModal(self, self.__configs["AddMovieSourceModal"])
+        self.new_connector_modal = AddMovieSourceModal(self, self._configs["AddMovieSourceModal"])
         self.new_connector_modal.withdraw() # Keep it hidden
 
         # Render loop

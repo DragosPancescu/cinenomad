@@ -4,20 +4,20 @@ from PIL import Image, ImageTk
 
 
 class AppControlButton(tk.Button):
-    def __init__(self, parent, config_params):
+    def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
 
         # Get config params
-        self.__config_params = config_params
+        self._config_params = config_params
 
         # Get ImageTk object
-        self.__config_params["image"] = self.__read_icon_image(
-            self.__config_params["image_path"]
+        self._config_params["image"] = self._read_icon_image(
+            self._config_params["image_path"]
         )
-        self.__config_params.pop("image_path", None)
+        self._config_params.pop("image_path", None)
 
-        self.configure(**self.__config_params)
+        self.configure(**self._config_params)
 
-    def __read_icon_image(self, path):
+    def _read_icon_image(self, path: str) -> ImageTk.PhotoImage:
         button_png = Image.open(path).convert("RGBA")
         return ImageTk.PhotoImage(button_png)

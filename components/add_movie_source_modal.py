@@ -2,15 +2,15 @@ import tkinter as tk
 
 
 class AddMovieSourceModal(tk.Toplevel):
-    def __init__(self, parent, config_params):
+    def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
 
-        self.__config_params = config_params
+        self._config_params = config_params
 
-        self.title(self.__config_params["title"])
+        self.title(self._config_params["title"])
         self.resizable(False, False)
         self.wm_overrideredirect(True)
-        self.configure(**self.__config_params["Design"])
+        self.configure(**self._config_params["Design"])
 
         # Controls
         self.bind("<Escape>", self.close)
@@ -18,33 +18,33 @@ class AddMovieSourceModal(tk.Toplevel):
         # Add Button for making selection
         AddButton = tk.Button(
             self,
-            text=self.__config_params["AddButton"]["text"],
+            text=self._config_params["AddButton"]["text"],
             command=lambda: self.handle_user_choice(
-                self.__config_params["AddButton"]["text"]
+                self._config_params["AddButton"]["text"]
             ),
-            **self.__config_params["AddButton"]["Design"],
+            **self._config_params["AddButton"]["Design"],
         )
-        AddButton.place(**self.__config_params["AddButton"]["Placement"])
+        AddButton.place(**self._config_params["AddButton"]["Placement"])
 
         CancelButton = tk.Button(
             self,
-            text=self.__config_params["CancelButton"]["text"],
-            command=lambda: self.handle_user_choice(
-                self.__config_params["CancelButton"]["text"]
+            text=self._config_params["CancelButton"]["text"],
+            command=lambda: self._handle_user_choice(
+                self._config_params["CancelButton"]["text"]
             ),
-            **self.__config_params["CancelButton"]["Design"],
+            **self._config_params["CancelButton"]["Design"],
         )
-        CancelButton.place(**self.__config_params["CancelButton"]["Placement"])
-        self.__center(parent)
+        CancelButton.place(**self._config_params["CancelButton"]["Placement"])
+        self._center(parent)
 
-    def handle_user_choice(self, choice):
+    def _handle_user_choice(self, choice: str) -> None:
         if choice == "Add":
             print("Added new movie source")
         else:
             print("Cancel new movie source")
         self.close()
 
-    def __center(self, parent):
+    def _center(self, parent: tk.Widget) -> None:
         self.geometry("600x300")
 
         parent.update_idletasks()
@@ -67,5 +67,5 @@ class AddMovieSourceModal(tk.Toplevel):
         # Position the toplevel window
         self.geometry(f"{toplevel_width}x{toplevel_height}+{x}+{y}")
 
-    def close(self, e=None):
+    def close(self, e=None) -> None:
         self.withdraw()

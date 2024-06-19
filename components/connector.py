@@ -2,65 +2,72 @@ import tkinter as tk
 
 from PIL import Image, ImageTk, UnidentifiedImageError
 
+from .strategy.connector_click_strategy import ConnectorClickStrategy
+
+
 class ConnectorIcon(tk.Button):
-    def __init__(self, parent, config_params, image_path, text):
+    def __init__(self, parent: tk.Widget, config_params: dict, image_path: str, text: str, strategy: ConnectorClickStrategy):
         super().__init__(parent)
 
-        self.__config_params = config_params
+        self._config_params = config_params
 
         # Transform list to tuple
-        self.__config_params["font"] = tuple(self.__config_params["font"])
+        self._config_params["font"] = tuple(self._config_params["font"])
 
         # Get ImageTk object
-        self.__config_params["image"] = self.__read_icon_image(image_path)
+        self._config_params["image"] = self._read_icon_image(image_path)
 
         # Keep reference so the image is rendered
-        self.image = self.__config_params["image"]
+        self._image = self._config_params["image"]
 
-        self.__config_params["text"] = text
+        self._config_params["text"] = text
+        self._strategy = strategy
 
-        self.configure(**self.__config_params)
+        self.configure(
+            command=self._strategy.execute, 
+            **self._config_params
+        )
 
-        self.bind("<Enter>", lambda event: self.__on_enter_highlight(event))
-        self.bind("<Leave>", lambda event: self.__on_exit_no_highlight(event))
+        self.bind("<Enter>", lambda event: self._on_enter_highlight(event))
+        self.bind("<Leave>", lambda event: self._on_exit_no_highlight(event))
 
-    def __read_icon_image(self, path):
+    def _read_icon_image(self, path: str) -> ImageTk.PhotoImage:
         try:
             button_png = Image.open(path).convert("RGBA")
             return ImageTk.PhotoImage(button_png)
         except UnidentifiedImageError as err:
-            return err
+            return err.strerror
 
-    def __on_enter_highlight(self, event):
+    def _on_enter_highlight(self, event) -> None:
         self.configure(highlightbackground="#D9D9D9")
         print(f"Enter: {event.widget['text']}")
 
-    def __on_exit_no_highlight(self, event):
-        self.configure(highlightbackground=self.__config_params["highlightbackground"])
+    def _on_exit_no_highlight(self, event) -> None:
+        self.configure(highlightbackground=self._config_params["highlightbackground"])
         print(f"Exit: {event.widget['text']}")
 
 
 class ConnectorLabel(tk.Label):
-    def __init__(self, parent, config_params, text):
+    def __init__(self, parent: tk.Widget, config_params: dict, text: str):
         super().__init__(parent)
 
-        self.__config_params = config_params
+        self._config_params = config_params
 
         # Transform list to tuple
-        self.__config_params["font"] = tuple(self.__config_params["font"])
+        self._config_params["font"] = tuple(self._config_params["font"])
 
-        self.__config_params["text"] = text
+        self._config_params["text"] = text
 
-        self.configure(**self.__config_params)
+        self.configure(**self._config_params)
 
 
 class ConnectorsFrame(tk.Frame):
-    def __init__(self, parent, config_params, connector_count):
+    def __init__(self, parent: tk.Widget, config_params: dict, connector_count: int):
         super().__init__(parent)
 
-        self.__config_params = config_params
+        self._config_params = config_params
 
-        self.configure(**self.__config_params)
+        self.configure(**self._config_params)
 
         self.grid_rowconfigure((0, 1), weight=1)
         self.grid_columnconfigure([idx for idx in range(connector_count)], weight=1)
