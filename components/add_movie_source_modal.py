@@ -5,6 +5,8 @@ import tkinter as tk
 class AddMovieSourceModal(tk.Toplevel):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
+        self._parent = parent
+        self.focus()
 
         self._config_params = copy.deepcopy(config_params)
 
@@ -72,3 +74,4 @@ class AddMovieSourceModal(tk.Toplevel):
 
     def close(self, e=None) -> None:
         self.withdraw()
+        self._parent.focus()

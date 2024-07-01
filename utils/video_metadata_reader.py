@@ -3,17 +3,8 @@ import yaml
 
 import cv2
 
-
-class FolderNotFoundException(Exception):
-    """Exception raised for when a folder path is not found
-
-    Args:
-        folder_path (str): Folder path that caused the error
-    """
-
-    def __init__(self, folder_path):
-        self.message = f"Path: {folder_path} is not found or is not a folder path, please check your settings."
-        super().__init__(self.message)
+from PIL import ImageTk
+from .exceptions import FolderNotFoundException
 
 
 class VideoMetadataListBuilder():
@@ -49,6 +40,8 @@ class VideoMetadataListBuilder():
         
     def _get_video_file_metadata(self, video_file_path: str) -> dict:
         """Uses MediaInfo wrapper to get local video file metadata:
+            - Length
+            -
 
         Args:
             video_file_path (str): Path to the video file to extract metadata from
@@ -58,6 +51,7 @@ class VideoMetadataListBuilder():
         """
         pass
     
+    # TODO: Find a way to get nice screenshots
     def _get_video_file_screenshot(self, video_file_path: str) -> object:
         """Uses OpenCV to get local video file sneek peak screenshot for the UI:
 
@@ -67,7 +61,14 @@ class VideoMetadataListBuilder():
         Returns:
             TBD
         """
-        pass
+        video = cv2.VideoCapture('sample.mp4')
+        frame_id = int(video.get(cv2.CAP_PROP_FPS) * (60 * 60)) # Frame at 1 minute into the video
+
+        video.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
+        res, frame = video.read()
+
+        if res:
+            return ImageTk.PhotoImage(button_png)
     
 
     def get_metadata_list(self) -> list:

@@ -1,4 +1,4 @@
-from .connector_click_strategy import ConnectorClickStrategy
+from . import ConnectorClickStrategy
 
 class NetflixConnectorClick(ConnectorClickStrategy):
     def execute(self):

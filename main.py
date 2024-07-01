@@ -1,5 +1,5 @@
-from components.app import App
-from utils.process_utils import set_proc_name
+from components import App
+from utils import set_proc_name
 
 import platform
 

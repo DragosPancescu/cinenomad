@@ -3,14 +3,21 @@ import json
 
 import tkinter as tk
 
-from .app_control_button import AppControlButton
-from .add_movie_source_button import AddMovieSourceButton
-from .connector import ConnectorIcon, ConnectorLabel, ConnectorsFrame
-from .add_movie_source_modal import AddMovieSourceModal
+from .strategy import (
+    ConnectorClickStrategy,
+    NetflixConnectorClick,
+    LocalConnectorClick
+)
 
-from .strategy.netflix_click_strategy import NetflixConnectorClick
-from .strategy.local_connector_click import LocalConnectorClick
-from .strategy.connector_click_strategy import ConnectorClickStrategy
+from components import (
+    AppControlButton,
+    AddMovieSourceButton,
+    ConnectorIcon,
+    ConnectorLabel,
+    ConnectorsFrame,
+    AddMovieSourceModal,
+)
+
 
 class App(tk.Tk):
     def __init__(self):
@@ -62,7 +69,7 @@ class App(tk.Tk):
             len(self._connector_data),
         )
         self.connectors_frame.place(**self._configs["ConnectorsFrame"]["Placement"])
-    
+
         for idx, connector in enumerate(self._connector_data):
             # TODO: Check if image is available
             connector_button = ConnectorIcon(
@@ -70,13 +77,15 @@ class App(tk.Tk):
                 self._configs["ConnectorIcon"]["Design"],
                 connector["image_path"],
                 connector["text"],
-                self._get_strategy_for_connector(connector["text"]) # Inject click strategy
+                self._get_strategy_for_connector(
+                    connector["text"]
+                ),  # Inject click strategy
             )
 
             connector_button.grid(
                 column=idx, **self._configs["ConnectorIcon"]["Placement"]
             )
-            
+
             connector_label = ConnectorLabel(
                 self.connectors_frame,
                 self._configs["ConnectorLabel"]["Design"],
@@ -87,8 +96,10 @@ class App(tk.Tk):
             )
 
         # Add new connector modal (toplevel)
-        self.new_connector_modal = AddMovieSourceModal(self, self._configs["AddMovieSourceModal"])
-        self.new_connector_modal.withdraw() # Keep it hidden
+        self.new_connector_modal = AddMovieSourceModal(
+            self, self._configs["AddMovieSourceModal"]
+        )
+        self.new_connector_modal.withdraw()  # Keep it hidden
 
         # Render loop
         self.mainloop()
@@ -109,6 +120,7 @@ class App(tk.Tk):
 
     def show_add_new_connector_modal(self):
         self.new_connector_modal.deiconify()
+        self.new_connector_modal.focus()
 
     def _get_strategy_for_connector(self, name: str) -> ConnectorClickStrategy:
         if name == "Netflix":

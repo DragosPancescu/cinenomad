@@ -2,8 +2,8 @@ import os
 
 import tkinter as tk
 
-from .connector_click_strategy import ConnectorClickStrategy
-from ..app_control_button import AppControlButton
+from . import ConnectorClickStrategy
+from components import AppControlButton
 
 # TODO: This will be configurable on first use or after in the settings menu.
 FOLDER_PATH = "/home/dragos/Videos"
@@ -33,27 +33,17 @@ class LocalMovieBrowserModal(tk.Toplevel):
             self, self._config_params["LocalMovieBrowserModalCloseButton"]["Design"]
         )
         self.close_button.configure(command=self.close)
-        self.close_button.place(**self._config_params["LocalMovieBrowserModalCloseButton"]["Placement"])
+        self.close_button.place(
+            **self._config_params["LocalMovieBrowserModalCloseButton"]["Placement"]
+        )
 
     def close(self, e=None) -> None:
         self.withdraw()
         self._parent.focus()
 
-
     def show(self) -> None:
         self.deiconify()
         self.focus()
-
-    def read_video_files(self) -> list[dict]:
-        if not os.path.isdir(FOLDER_PATH):
-            print(f"{FOLDER_PATH} does not exist or is not a folder.")
-            return None
-        
-        for filename in os.listdir(FOLDER_PATH):
-            f = os.path.join(FOLDER_PATH, filename)
-            # checking if it is a file
-            if os.path.isfile(f):
-                print(f)
 
 
 class LocalConnectorClick(ConnectorClickStrategy):

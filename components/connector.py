@@ -3,7 +3,7 @@ import tkinter as tk
 
 from PIL import Image, ImageTk, UnidentifiedImageError
 
-from .strategy.connector_click_strategy import ConnectorClickStrategy
+from .strategy import ConnectorClickStrategy
 
 
 class ConnectorIcon(tk.Button):
