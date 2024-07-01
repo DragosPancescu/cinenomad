@@ -3,21 +3,26 @@ import yaml
 
 import cv2
 
-from PIL import ImageTk
-from .exceptions import FolderNotFoundException
+from PIL import Image, ImageTk
+from pymediainfo import MediaInfo
+
+from exceptions import FolderNotFoundException
 
 
-class VideoMetadataListBuilder():
+class VideoMetadataListReader():
     def __init__(self, folder_path: str) -> None:
         self._folder_path = folder_path
-        self._file_names = self._read_video_file_names()
+        self._config_path = "./settings/accepted_extension.yaml"
         self._accepted_extensions = self._read_accepted_extensions()
+        self._file_names = self._read_video_file_names()
         
         self._metadata_list = []
         for file_name in self._file_names:
             self._metadata_list.append(
-                self._get_video_file_metadata(os.join(self._folder_path, file_name)),
-                self._get_video_file_screenshot(os.join(self._folder_path, file_name)),
+                {
+                    **self._get_video_file_metadata(os.path.join(self._folder_path, file_name)),
+                    "image": self._get_video_file_screenshot(os.path.join(self._folder_path, file_name))
+                }
             )
 
     def _read_video_file_names(self) -> list:
@@ -37,11 +42,10 @@ class VideoMetadataListBuilder():
 
     def _get_movie_metadata(self, movie_name: str) -> object:
         pass
-        
+    
+    # TODO: Get needed metadata
     def _get_video_file_metadata(self, video_file_path: str) -> dict:
         """Uses MediaInfo wrapper to get local video file metadata:
-            - Length
-            -
 
         Args:
             video_file_path (str): Path to the video file to extract metadata from
@@ -49,7 +53,11 @@ class VideoMetadataListBuilder():
         Returns:
             dict: Local video file metada dictionary
         """
-        pass
+        media_info = MediaInfo.parse(video_file_path)
+
+        for track in media_info.tracks:
+            if track.track_type == "General":
+                return track.to_data()
     
     # TODO: Find a way to get nice screenshots
     def _get_video_file_screenshot(self, video_file_path: str) -> object:
@@ -61,47 +69,24 @@ class VideoMetadataListBuilder():
         Returns:
             TBD
         """
-        video = cv2.VideoCapture('sample.mp4')
+        video = cv2.VideoCapture(video_file_path)
         frame_id = int(video.get(cv2.CAP_PROP_FPS) * (60 * 60)) # Frame at 1 minute into the video
 
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
         res, frame = video.read()
 
         if res:
-            return ImageTk.PhotoImage(button_png)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            frame_pil = Image.fromarray(frame)
+            return ImageTk.PhotoImage(frame_pil)
     
 
     def get_metadata_list(self) -> list:
         return self._metadata_list
     
     def _read_accepted_extensions(self) -> list:
-        with open(self.config_path) as conf_f:
+        with open(self._config_path) as conf_f:
             try:
                 return yaml.safe_load(conf_f)
             except yaml.YAMLError as err:
                 return err
-
-"""
-from pymediainfo import MediaInfo
-
-# Open the video file
-video_path = 'path_to_your_video_file.mp4'
-media_info = MediaInfo.parse(video_path)
-
-# Print general and video metadata
-for track in media_info.tracks:
-    if track.track_type == "General":
-        print(f"Title: {track.title}")
-        print(f"Year: {track.recorded_date}")
-        print(f"Genre: {track.genre}")
-        print(f"Duration (seconds): {track.duration / 1000}")  # Duration is in milliseconds
-    elif track.track_type == "Video":
-        print(f"Frame Width: {track.width}")
-        print(f"Frame Height: {track.height}")
-        print(f"Frame Rate: {track.frame_rate}")
-        print(f"Codec: {track.codec_id}")
-
-# Print all available metadata for all tracks
-for track in media_info.tracks:
-    print(track.to_data())
-"""
