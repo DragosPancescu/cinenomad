@@ -1,4 +1,5 @@
 import tkinter as tk
+import copy
 
 from PIL import Image, ImageTk
 
@@ -6,9 +7,8 @@ from PIL import Image, ImageTk
 class AppControlButton(tk.Button):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
-
         # Get config params
-        self._config_params = config_params
+        self._config_params = copy.deepcopy(config_params)
 
         # Get ImageTk object
         self._config_params["image"] = self._read_icon_image(

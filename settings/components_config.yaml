@@ -1,3 +1,4 @@
+---
 App:
   background: "#282828"
 
@@ -9,7 +10,7 @@ AppControlButton: &appcontrolbutton
   cursor: hand2
   relief: sunken
 
-CloseButton:
+CloseButton: &closebutton
   Design:
     width: 40
     height: 40
@@ -32,7 +33,7 @@ SleepButton:
     relx: 1
     rely: 0
     x: -65
-    y: 12
+    y: 10
     anchor: ne
 
 NewConnectorButton:
@@ -132,3 +133,11 @@ AddMovieSourceModal:
     Placement:
       x: 40
       <<: *addMovieSourceModalButtonPlacement
+
+LocalMovieBrowserModal:
+  title: "Browse Local"
+  Design:
+    background: "#282828"
+  LocalMovieBrowserModalCloseButton: 
+    <<: *closebutton
+...

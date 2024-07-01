@@ -1,3 +1,4 @@
+import copy
 import tkinter as tk
 
 
@@ -5,7 +6,7 @@ class AddMovieSourceButton(tk.Button):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
 
-        self._config_params = config_params
+        self._config_params = copy.deepcopy(config_params)
 
         # Transform list to tuple
         self._config_params["font"] = tuple(self._config_params["font"])

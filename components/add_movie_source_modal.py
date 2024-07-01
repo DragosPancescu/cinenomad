@@ -1,3 +1,4 @@
+import copy
 import tkinter as tk
 
 
@@ -5,7 +6,7 @@ class AddMovieSourceModal(tk.Toplevel):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
 
-        self._config_params = config_params
+        self._config_params = copy.deepcopy(config_params)
 
         self.title(self._config_params["title"])
         self.resizable(False, False)
@@ -15,6 +16,7 @@ class AddMovieSourceModal(tk.Toplevel):
         # Controls
         self.bind("<Escape>", self.close)
 
+        # Widgets
         # Add Button for making selection
         AddButton = tk.Button(
             self,
@@ -26,6 +28,7 @@ class AddMovieSourceModal(tk.Toplevel):
         )
         AddButton.place(**self._config_params["AddButton"]["Placement"])
 
+        # Cancel Button
         CancelButton = tk.Button(
             self,
             text=self._config_params["CancelButton"]["text"],

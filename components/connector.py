@@ -1,3 +1,4 @@
+import copy
 import tkinter as tk
 
 from PIL import Image, ImageTk, UnidentifiedImageError
@@ -9,7 +10,7 @@ class ConnectorIcon(tk.Button):
     def __init__(self, parent: tk.Widget, config_params: dict, image_path: str, text: str, strategy: ConnectorClickStrategy):
         super().__init__(parent)
 
-        self._config_params = config_params
+        self._config_params = copy.deepcopy(config_params)
 
         # Transform list to tuple
         self._config_params["font"] = tuple(self._config_params["font"])
@@ -51,7 +52,7 @@ class ConnectorLabel(tk.Label):
     def __init__(self, parent: tk.Widget, config_params: dict, text: str):
         super().__init__(parent)
 
-        self._config_params = config_params
+        self._config_params = copy.deepcopy(config_params)
 
         # Transform list to tuple
         self._config_params["font"] = tuple(self._config_params["font"])
@@ -65,7 +66,7 @@ class ConnectorsFrame(tk.Frame):
     def __init__(self, parent: tk.Widget, config_params: dict, connector_count: int):
         super().__init__(parent)
 
-        self._config_params = config_params
+        self._config_params = copy.deepcopy(config_params)
 
         self.configure(**self._config_params)
 
