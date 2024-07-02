@@ -1,5 +1,7 @@
 import os
 import yaml
+from dataclasses import dataclass
+from enum import Enum
 
 import cv2
 
@@ -7,6 +9,25 @@ from PIL import Image, ImageTk
 from pymediainfo import MediaInfo
 
 from exceptions import FolderNotFoundException
+
+
+class TimeUnit(Enum):
+    MINUTES = 60
+    HOURS = 3600
+
+    
+@dataclass
+class MovieMetadata:
+    """Class for keeping track of a video metadata."""
+    title: str
+    year: str
+    length: float # seconds
+    director: str
+    genres: list[str]
+    image: ImageTk
+    
+    def get_converted_time(self, time_unit: TimeUnit) -> float:
+        return self.length / time_unit
 
 
 class VideoMetadataListReader():
@@ -60,7 +81,7 @@ class VideoMetadataListReader():
                 return track.to_data()
     
     # TODO: Find a way to get nice screenshots
-    def _get_video_file_screenshot(self, video_file_path: str) -> object:
+    def _get_video_file_screenshot(self, video_file_path: str) -> ImageTk:
         """Uses OpenCV to get local video file sneek peak screenshot for the UI:
 
         Args:
