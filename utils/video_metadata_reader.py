@@ -8,12 +8,7 @@ import cv2
 from PIL import Image, ImageTk
 from pymediainfo import MediaInfo
 
-from exceptions import FolderNotFoundException
-
-
-class TimeUnit(Enum):
-    MINUTES = 60
-    HOURS = 3600
+from .exceptions import FolderNotFoundException
 
     
 @dataclass
@@ -21,14 +16,12 @@ class MovieMetadata:
     """Class for keeping track of a video metadata."""
     title: str
     year: str
-    length: float # seconds
+    language: str
+    length: str
     director: str
     genres: list[str]
     image: ImageTk
     
-    def get_converted_time(self, time_unit: TimeUnit) -> float:
-        return self.length / time_unit
-
 
 class VideoMetadataListReader():
     def __init__(self, folder_path: str) -> None:
@@ -39,11 +32,18 @@ class VideoMetadataListReader():
         
         self._metadata_list = []
         for file_name in self._file_names:
+            extracted_metadata = self._get_video_file_metadata(os.path.join(self._folder_path, file_name))
+
             self._metadata_list.append(
-                {
-                    **self._get_video_file_metadata(os.path.join(self._folder_path, file_name)),
-                    "image": self._get_video_file_screenshot(os.path.join(self._folder_path, file_name))
-                }
+                MovieMetadata(
+                    title="",
+                    year="",
+                    language=extracted_metadata["audio_language_list"],
+                    length=extracted_metadata["other_duration"][0],
+                    director="",
+                    genres=[""],
+                    image=self._get_video_file_screenshot(os.path.join(self._folder_path, file_name))
+                )
             )
 
     def _read_video_file_names(self) -> list:
@@ -88,21 +88,28 @@ class VideoMetadataListReader():
             video_file_path (str): Path to the video file to extract the screenshot from
 
         Returns:
-            TBD
+            ImageTk: Ready to be used in a widget
         """
         video = cv2.VideoCapture(video_file_path)
-        frame_id = int(video.get(cv2.CAP_PROP_FPS) * (60 * 60)) # Frame at 1 minute into the video
+        if not video.isOpened():
+            print(f"Could not open: {video_file_path}")
+            return None
 
+        frame_id = video.get(cv2.CAP_PROP_FPS) * 30 # Frame at 30th second
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
-        res, frame = video.read()
 
-        if res:
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            frame_pil = Image.fromarray(frame)
-            return ImageTk.PhotoImage(frame_pil)
+        res, frame = video.read()
+        if not res:
+            print(f"Could not get screenshot of: {video_file_path}")
+            return None
+
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        frame_pil = Image.fromarray(frame).resize((200, 200), Image.Resampling.LANCZOS)
+        return ImageTk.PhotoImage(image=frame_pil)
+        
     
 
-    def get_metadata_list(self) -> list:
+    def get_metadata_list(self) -> list[MovieMetadata]:
         return self._metadata_list
     
     def _read_accepted_extensions(self) -> list:

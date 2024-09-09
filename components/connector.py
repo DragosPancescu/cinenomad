@@ -25,7 +25,7 @@ class ConnectorIcon(tk.Button):
         self._strategy = strategy
 
         self.configure(
-            command=self._strategy.execute, 
+            command=lambda: self._on_click(None), 
             **self._config_params
         )
 
@@ -46,6 +46,11 @@ class ConnectorIcon(tk.Button):
     def _on_exit_no_highlight(self, event) -> None:
         self.configure(highlightbackground=self._config_params["highlightbackground"])
         print(f"Exit: {event.widget['text']}")
+
+    def _on_click(self, event) -> None:
+        self.configure(cursor="watch")
+        self._strategy.execute()
+        self.configure(cursor=self._config_params["cursor"])
 
 
 class ConnectorLabel(tk.Label):

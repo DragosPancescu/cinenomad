@@ -3,6 +3,8 @@ import json
 
 import tkinter as tk
 
+from tk_alert import AlertGenerator
+
 from .strategy import (
     ConnectorClickStrategy,
     NetflixConnectorClick,
@@ -24,6 +26,9 @@ class App(tk.Tk):
         print("App started")
 
         super().__init__()
+
+        # Alert object
+        self._alert_generator = AlertGenerator(self)
 
         # Configure
         self.config_path = "settings/components_config.yaml"
