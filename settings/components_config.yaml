@@ -140,4 +140,20 @@ LocalMovieBrowserModal:
     background: "#282828"
   LocalMovieBrowserModalCloseButton: 
     <<: *closebutton
+  LocalMovieCard:
+    Design:
+      background: "#282828"
+      width: 50
+      height: 50
+      padx: 15
+      pady: 15
+      cursor: "hand2"
+    Entry:
+      Design:
+        width: 50
+        height: 2
+    Screenshot:
+      Design:
+        width: 200
+        height: 200
 ...

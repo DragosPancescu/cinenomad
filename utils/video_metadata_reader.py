@@ -10,10 +10,11 @@ from pymediainfo import MediaInfo
 
 from .exceptions import FolderNotFoundException
 
-    
+
 @dataclass
 class MovieMetadata:
     """Class for keeping track of a video metadata."""
+
     title: str
     year: str
     language: str
@@ -21,35 +22,40 @@ class MovieMetadata:
     director: str
     genres: list[str]
     image: ImageTk
-    
+    full_path: str
 
-class VideoMetadataListReader():
+
+class VideoMetadataListReader:
     def __init__(self, folder_path: str) -> None:
         self._folder_path = folder_path
         self._config_path = "./settings/accepted_extension.yaml"
         self._accepted_extensions = self._read_accepted_extensions()
         self._file_names = self._read_video_file_names()
-        
+
         self._metadata_list = []
         for file_name in self._file_names:
-            extracted_metadata = self._get_video_file_metadata(os.path.join(self._folder_path, file_name))
+            full_path = os.path.join(self._folder_path, file_name)
+            extracted_metadata = self._get_video_file_metadata(full_path)
 
             self._metadata_list.append(
                 MovieMetadata(
                     title="",
                     year="",
-                    language=extracted_metadata["audio_language_list"],
+                    language="romana",  # extracted_metadata["audio_language_list"],
                     length=extracted_metadata["other_duration"][0],
                     director="",
                     genres=[""],
-                    image=self._get_video_file_screenshot(os.path.join(self._folder_path, file_name))
+                    image=self._get_video_file_screenshot(
+                        os.path.join(self._folder_path, file_name)
+                    ),
+                    full_path=full_path
                 )
             )
 
     def _read_video_file_names(self) -> list:
         if not os.path.isdir(self._folder_path):
             raise FolderNotFoundException(self._folder_path)
-        
+
         file_names = []
         for file in os.listdir(self._folder_path):
             if os.path.isfile(os.path.join(self._folder_path, file)):
@@ -57,13 +63,15 @@ class VideoMetadataListReader():
 
         # Filter using the accepted extensions list
         file_names = [
-            file_name for file_name in file_names if file_name.split(".")[-1] in self._accepted_extensions
+            file_name
+            for file_name in file_names
+            if file_name.split(".")[-1].lower() in self._accepted_extensions
         ]
         return file_names
 
     def _get_movie_metadata(self, movie_name: str) -> object:
         pass
-    
+
     # TODO: Get needed metadata
     def _get_video_file_metadata(self, video_file_path: str) -> dict:
         """Uses MediaInfo wrapper to get local video file metadata:
@@ -79,7 +87,7 @@ class VideoMetadataListReader():
         for track in media_info.tracks:
             if track.track_type == "General":
                 return track.to_data()
-    
+
     # TODO: Find a way to get nice screenshots
     def _get_video_file_screenshot(self, video_file_path: str) -> ImageTk:
         """Uses OpenCV to get local video file sneek peak screenshot for the UI:
@@ -95,7 +103,14 @@ class VideoMetadataListReader():
             print(f"Could not open: {video_file_path}")
             return None
 
-        frame_id = video.get(cv2.CAP_PROP_FPS) * 30 # Frame at 30th second
+        # Get position where to capture the screenshot
+        len_seconds = int(video.get(cv2.CAP_PROP_FRAME_COUNT)) / video.get(
+            cv2.CAP_PROP_FPS
+        )
+        pos_seconds = 30 if len_seconds >= 120 else len_seconds / 4
+
+        # Position video at pos_seconds
+        frame_id = video.get(cv2.CAP_PROP_FPS) * pos_seconds
         video.set(cv2.CAP_PROP_POS_FRAMES, frame_id)
 
         res, frame = video.read()
@@ -106,12 +121,10 @@ class VideoMetadataListReader():
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame_pil = Image.fromarray(frame).resize((200, 200), Image.Resampling.LANCZOS)
         return ImageTk.PhotoImage(image=frame_pil)
-        
-    
 
     def get_metadata_list(self) -> list[MovieMetadata]:
         return self._metadata_list
-    
+
     def _read_accepted_extensions(self) -> list:
         with open(self._config_path) as conf_f:
             try:

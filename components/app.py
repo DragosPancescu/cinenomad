@@ -84,7 +84,7 @@ class App(tk.Tk):
                 connector["text"],
                 self._get_strategy_for_connector(
                     connector["text"]
-                ),  # Inject click strategy
+                )  # Inject click strategy
             )
 
             connector_button.grid(
@@ -94,7 +94,7 @@ class App(tk.Tk):
             connector_label = ConnectorLabel(
                 self.connectors_frame,
                 self._configs["ConnectorLabel"]["Design"],
-                connector["text"],
+                connector["text"]
             )
             connector_label.grid(
                 column=idx, **self._configs["ConnectorLabel"]["Placement"]
