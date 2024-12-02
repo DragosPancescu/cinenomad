@@ -40,7 +40,9 @@ class AddMovieSourceModal(tk.Toplevel):
             **self._config_params["CancelButton"]["Design"],
         )
         CancelButton.place(**self._config_params["CancelButton"]["Placement"])
-        self._center(parent)
+
+        # Change placement on screen
+        self._center()
 
     def _handle_user_choice(self, choice: str) -> None:
         if choice == "Add":
@@ -49,17 +51,17 @@ class AddMovieSourceModal(tk.Toplevel):
             print("Cancel new movie source")
         self.close()
 
-    def _center(self, parent: tk.Widget) -> None:
+    def _center(self) -> None:
         self.geometry("600x300")
 
-        parent.update_idletasks()
+        self._parent.update_idletasks()
         self.update_idletasks()
 
         # Get frame dimensions and position
-        frame_width = parent.winfo_width()
-        frame_height = parent.winfo_height()
-        frame_x = parent.winfo_rootx()
-        frame_y = parent.winfo_rooty()
+        frame_width = self._parent.winfo_width()
+        frame_height = self._parent.winfo_height()
+        frame_x = self._parent.winfo_rootx()
+        frame_y = self._parent.winfo_rooty()
 
         # Get toplevel dimensions
         toplevel_width = self.winfo_width()
@@ -74,4 +76,5 @@ class AddMovieSourceModal(tk.Toplevel):
 
     def close(self, e=None) -> None:
         self.withdraw()
+        self.destroy()
         self._parent.focus()

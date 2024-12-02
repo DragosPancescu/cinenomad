@@ -39,15 +39,15 @@ class ConnectorIcon(tk.Button):
         except UnidentifiedImageError as err:
             return err.strerror
 
-    def _on_enter_highlight(self, event) -> None:
+    def _on_enter_highlight(self, e) -> None:
         self.configure(highlightbackground="#D9D9D9")
-        print(f"Enter: {event.widget['text']}")
+        print(f"Enter: {e.widget['text']}")
 
-    def _on_exit_no_highlight(self, event) -> None:
+    def _on_exit_no_highlight(self, e) -> None:
         self.configure(highlightbackground=self._config_params["highlightbackground"])
-        print(f"Exit: {event.widget['text']}")
+        print(f"Exit: {e.widget['text']}")
 
-    def _on_click(self, event) -> None:
+    def _on_click(self, e) -> None:
         self.configure(cursor="watch")
         self._strategy.execute()
         self.configure(cursor=self._config_params["cursor"])

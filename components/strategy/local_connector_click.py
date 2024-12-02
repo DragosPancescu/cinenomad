@@ -1,14 +1,16 @@
 import copy
+import time
 import tkinter as tk
-from typing import Callable
 
 from . import ConnectorClickStrategy
 from components import AppControlButton
 
-from utils import VideoMetadataListReader, MovieMetadata, open_vlc
+from utils import VideoMetadataListReader, MovieMetadata
+
+from ..vlc_player import Player
 
 # TODO: This will be configurable on first use or after in the settings menu.
-FOLDER_PATH = r"/home/dragos/Pictures/Only Iphone - Dragos/202408__"
+FOLDER_PATH = r"/home/dragos/Downloads/input"
 
 
 class LocalMovieBrowserModal(tk.Toplevel):
@@ -29,14 +31,14 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0")
 
         # Controls
-        self.bind("<Escape>", self.close)
+        self.bind("<Escape>", self.hide)
 
         # Widgets
         # Close button
         self.close_button = AppControlButton(
             self, self._config_params["LocalMovieBrowserModalCloseButton"]["Design"]
         )
-        self.close_button.configure(command=self.close)
+        self.close_button.configure(command=self.hide)
         self.close_button.place(
             **self._config_params["LocalMovieBrowserModalCloseButton"]["Placement"]
         )
@@ -45,10 +47,13 @@ class LocalMovieBrowserModal(tk.Toplevel):
         metadata_reader = VideoMetadataListReader(FOLDER_PATH)
         self._metadata = metadata_reader.get_metadata_list()
 
+        # Init player manager
+        # ------
+
         row, col = 1, 1
         for idx, metadata in enumerate(self._metadata):
             movie_card = LocalMovieCard(
-                self, self._config_params["LocalMovieCard"], metadata, open_vlc
+                self, self._config_params["LocalMovieCard"], metadata
             )
 
             # Position on the grid
@@ -59,7 +64,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
             movie_card.grid(row=row, column=col)
 
-    def close(self, e=None) -> None:
+    def hide(self, e=None) -> None:
         self.withdraw()
         self._parent.focus()
 
@@ -69,19 +74,16 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
 
 class LocalMovieCard(tk.Frame):
-    def __init__(self, parent: tk.Widget, config_params: dict, metadata: MovieMetadata, on_click: Callable):
+    def __init__(self, parent: tk.Widget, config_params: dict, metadata: MovieMetadata):
         super().__init__(parent)
         self._parent = parent
 
         self._config_params = copy.deepcopy(config_params)
         self._metadata = metadata
-        self._on_click = on_click
+        self._player = None
 
         self.configure(**self._config_params["Design"])
         
-        # Bind the left mouse button click event to the on_frame_click function
-        self.bind("<Button-1>", lambda event: on_click(event, metadata.full_path))
-
         title = tk.Label(
             self,
             text=f"title: {metadata.title}",
@@ -131,6 +133,12 @@ class LocalMovieCard(tk.Frame):
         )
         image_panel.pack()
 
+        # Bind the left mouse button click event to the on_frame_click function
+        image_panel.bind("<Button-1>", self._open_player)
+
+    def _open_player(self, e=None):
+        self._player = Player(self._parent, self._config_params["Player"], self._metadata.full_path, self._metadata.sub_path)
+        self._player.play()
     
 class LocalConnectorClick(ConnectorClickStrategy):
     def __init__(self, parent: tk.Widget, config_params: dict):

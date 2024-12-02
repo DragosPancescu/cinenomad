@@ -1,7 +1,6 @@
 import os
 import yaml
 from dataclasses import dataclass
-from enum import Enum
 
 import cv2
 
@@ -23,6 +22,7 @@ class MovieMetadata:
     genres: list[str]
     image: ImageTk
     full_path: str
+    sub_path: str
 
 
 class VideoMetadataListReader:
@@ -35,20 +35,22 @@ class VideoMetadataListReader:
         self._metadata_list = []
         for file_name in self._file_names:
             full_path = os.path.join(self._folder_path, file_name)
+            sub_path = os.path.join(self._folder_path, f"{os.path.splitext(os.path.basename(file_name))[0]}.src")
             extracted_metadata = self._get_video_file_metadata(full_path)
 
             self._metadata_list.append(
                 MovieMetadata(
                     title="",
                     year="",
-                    language="romana",  # extracted_metadata["audio_language_list"],
+                    language=extracted_metadata["audio_language_list"] if "audio_language_list" in extracted_metadata.keys() else "",
                     length=extracted_metadata["other_duration"][0],
                     director="",
                     genres=[""],
                     image=self._get_video_file_screenshot(
                         os.path.join(self._folder_path, file_name)
                     ),
-                    full_path=full_path
+                    full_path=full_path,
+                    sub_path=sub_path
                 )
             )
 

@@ -137,4 +137,5 @@ class App(tk.Tk):
 
     def close(self, e=None):
         print("App closed")
+        self.quit()
         self.destroy()
