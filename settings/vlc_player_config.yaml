@@ -1,0 +1,18 @@
+---
+VlcInstanceOptions:
+  - "--freetype-font=Swis721 Cn BT:style=Roman"
+  - "--freetype-rel-fontsize=22"
+  - "--freetype-outline-thickness=2"
+  - "--freetype-shadow-opacity=128"
+  - "--freetype-shadow-distance=0.1"
+  - "--subsdec-autodetect-utf8"
+  - "--aout=pulse"
+  - "--preferred-resolution=1080p"
+  - "--screen-fps=60"
+  - "--file-caching=10000"
+  - "--avcodec-hw=any"
+VlcPlayerProperties:
+  CursorPixelMovingThreshold: 20
+  InactivityTimeout: 2000
+  UpdateScaleTimeInterval: 1000
+...

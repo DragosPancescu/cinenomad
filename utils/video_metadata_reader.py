@@ -1,6 +1,9 @@
 import os
+import re
 import yaml
+
 from dataclasses import dataclass
+from datetime import datetime
 
 import cv2
 
@@ -8,21 +11,38 @@ from PIL import Image, ImageTk
 from pymediainfo import MediaInfo
 
 from .exceptions import FolderNotFoundException
+from .tmbd_utils import (
+    search_movie_tmbd_api_call,
+    get_tmdb_metadata,
+    download_tmdb_poster,
+)
 
 
 @dataclass
 class MovieMetadata:
     """Class for keeping track of a video metadata."""
 
-    title: str
-    year: str
     language: str
-    length: str
+    length: str  # format -> "%H:%M:%S.%f"
     director: str
-    genres: list[str]
     image: ImageTk
+    file_name: str
     full_path: str
     sub_path: str
+    tmdb_title: str
+    tmdb_year: str
+    tmdb_overview: str
+    tmdb_genres: list[str]
+    tmdb_poster_path: str
+
+    def get_length_sec(self) -> int:
+        time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
+        return int(
+            time_obj.hour * 3600
+            + time_obj.minute * 60
+            + time_obj.second
+            + time_obj.microsecond / 1_000_000
+        )
 
 
 class VideoMetadataListReader:
@@ -35,22 +55,53 @@ class VideoMetadataListReader:
         self._metadata_list = []
         for file_name in self._file_names:
             full_path = os.path.join(self._folder_path, file_name)
-            sub_path = os.path.join(self._folder_path, f"{os.path.splitext(os.path.basename(file_name))[0]}.src")
-            extracted_metadata = self._get_video_file_metadata(full_path)
+            sub_path = os.path.join(
+                self._folder_path,
+                f"{os.path.splitext(os.path.basename(file_name))[0]}.srt",
+            )
 
+            # Get data
+            extracted_metadata = self._get_video_file_metadata(full_path)
+            tmdb_metadata = self._get_tmdb_movie_metadata(file_name)
+
+            # Download poster from TMDB
+            poster_download_path = os.path.join(
+                "resources/movie_posters",
+                os.path.splitext(os.path.basename(full_path))[0] + ".jpg",
+            )
+
+            download_tmdb_poster(
+                tmdb_metadata["tmdb_poster_path"], poster_download_path
+            )
+            
+            # If poster download successful use that, else take a screenshot
+            if os.path.exists(poster_download_path):
+                image = Image.open(poster_download_path).resize((200, 200), Image.Resampling.LANCZOS)
+                poster_image = ImageTk.PhotoImage(image)
+            else:
+                poster_image = self._get_video_file_screenshot(
+                    os.path.join(self._folder_path, file_name)
+                )
+
+            # Add metadata to list
             self._metadata_list.append(
                 MovieMetadata(
-                    title="",
-                    year="",
-                    language=extracted_metadata["audio_language_list"] if "audio_language_list" in extracted_metadata.keys() else "",
-                    length=extracted_metadata["other_duration"][0],
-                    director="",
-                    genres=[""],
-                    image=self._get_video_file_screenshot(
-                        os.path.join(self._folder_path, file_name)
+                    language=(
+                        extracted_metadata["audio_language_list"]
+                        if "audio_language_list" in extracted_metadata.keys()
+                        else ""
                     ),
+                    length=extracted_metadata["other_duration"][3],
+                    director="",
+                    image=poster_image,
+                    file_name=file_name,
                     full_path=full_path,
-                    sub_path=sub_path
+                    sub_path=sub_path,
+                    tmdb_title=tmdb_metadata["tmdb_title"],
+                    tmdb_year=tmdb_metadata["tmdb_year"],
+                    tmdb_overview=tmdb_metadata["tmdb_overview"],
+                    tmdb_genres=tmdb_metadata["tmdb_genres"],
+                    tmdb_poster_path=tmdb_metadata["tmdb_poster_path"],
                 )
             )
 
@@ -71,8 +122,23 @@ class VideoMetadataListReader:
         ]
         return file_names
 
-    def _get_movie_metadata(self, movie_name: str) -> object:
-        pass
+    def _get_tmdb_movie_metadata(self, file_name: str) -> dict:
+
+        # Extract movie name from file_name
+        movie_name = re.sub("[^a-zA-Z]", " ", file_name)
+        movie_name = " ".join(
+            [word.title() for word in movie_name.split() if word != ""][0:3]
+        )
+
+        if len(movie_name.split()[-1]) <= 2:
+            movie_name = " ".join(movie_name.split()[0:-1])
+
+        # API CALL
+        movie_data = search_movie_tmbd_api_call(movie_name)
+
+        # Return dict with needed data
+        metadata = get_tmdb_metadata(movie_data)
+        return metadata
 
     # TODO: Get needed metadata
     def _get_video_file_metadata(self, video_file_path: str) -> dict:
@@ -91,6 +157,7 @@ class VideoMetadataListReader:
                 return track.to_data()
 
     # TODO: Find a way to get nice screenshots
+    # TODO: Get metadata frame for screenshot
     def _get_video_file_screenshot(self, video_file_path: str) -> ImageTk:
         """Uses OpenCV to get local video file sneek peak screenshot for the UI:
 

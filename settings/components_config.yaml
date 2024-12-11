@@ -157,7 +157,6 @@ LocalMovieBrowserModal:
         width: 200
         height: 200
     Player:
-      Placement:
-        fill: "both"
-        expand: true        
+      Design:
+        background: "#000000"
 ...

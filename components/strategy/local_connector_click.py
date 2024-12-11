@@ -48,8 +48,6 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self._metadata = metadata_reader.get_metadata_list()
 
         # Init player manager
-        # ------
-
         row, col = 1, 1
         for idx, metadata in enumerate(self._metadata):
             movie_card = LocalMovieCard(
@@ -67,10 +65,12 @@ class LocalMovieBrowserModal(tk.Toplevel):
     def hide(self, e=None) -> None:
         self.withdraw()
         self._parent.focus()
+        self.config(cursor="none") 
 
     def show(self) -> None:
         self.deiconify()
         self.focus()
+        self.config(cursor="") 
 
 
 class LocalMovieCard(tk.Frame):
@@ -86,14 +86,14 @@ class LocalMovieCard(tk.Frame):
         
         title = tk.Label(
             self,
-            text=f"title: {metadata.title}",
+            text=f"title: {metadata.tmdb_title}",
             **self._config_params["Entry"]["Design"],
         )
         title.pack()
 
         year = tk.Label(
             self,
-            text=f"year: {metadata.year}",
+            text=f"year: {metadata.tmdb_year}",
             **self._config_params["Entry"]["Design"],
         )
         year.pack()
@@ -121,7 +121,7 @@ class LocalMovieCard(tk.Frame):
 
         genres = tk.Label(
             self,
-            text=f"genres: {', '.join(metadata.genres)}",
+            text=f"genres: {', '.join(metadata.tmdb_genres)}",
             **self._config_params["Entry"]["Design"],
         )
         genres.pack()
@@ -137,7 +137,7 @@ class LocalMovieCard(tk.Frame):
         image_panel.bind("<Button-1>", self._open_player)
 
     def _open_player(self, e=None):
-        self._player = Player(self._parent, self._config_params["Player"], self._metadata.full_path, self._metadata.sub_path)
+        self._player = Player(self._parent, self._config_params["Player"], self._metadata.full_path, self._metadata.sub_path, self._metadata.get_length_sec())
         self._player.play()
     
 class LocalConnectorClick(ConnectorClickStrategy):

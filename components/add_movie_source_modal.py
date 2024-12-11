@@ -23,7 +23,7 @@ class AddMovieSourceModal(tk.Toplevel):
         AddButton = tk.Button(
             self,
             text=self._config_params["AddButton"]["text"],
-            command=lambda: self.handle_user_choice(
+            command=lambda: self._handle_user_choice(
                 self._config_params["AddButton"]["text"]
             ),
             **self._config_params["AddButton"]["Design"],
@@ -76,5 +76,4 @@ class AddMovieSourceModal(tk.Toplevel):
 
     def close(self, e=None) -> None:
         self.withdraw()
-        self.destroy()
         self._parent.focus()
