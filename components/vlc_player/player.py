@@ -121,7 +121,7 @@ class Player(tk.Toplevel):
         # Setup update timeslider on media position change
         event_manager.event_attach(vlc.EventType.MediaPlayerPositionChanged, self._update_timeslider)
 
-    def _update_timeslider(self, e):
+    def _update_timeslider(self, e=None):
         """Callback for when the media player's position changes."""
         seconds = self._player.get_time() // 1000
 
@@ -207,12 +207,14 @@ class Player(tk.Toplevel):
     def go_forward(self, e=None) -> None:
         """Go forward 5 sec"""
         self.toogle_controls_visibility()
-        self._player.set_time(self._player.get_time() + 5000)
+        self.seek(self._player.get_time() // 1000 + 5)
+        self._update_timeslider()
 
     def go_backward(self, e=None) -> None:
         """Go backward 5 sec"""
         self.toogle_controls_visibility()
-        self._player.set_time(self._player.get_time() - 5000)
+        self.seek(self._player.get_time() // 1000 - 5)
+        self._update_timeslider()
 
     def _hide_controls(self):
         self.config(cursor="none")

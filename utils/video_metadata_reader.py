@@ -11,10 +11,11 @@ from PIL import Image, ImageTk
 from pymediainfo import MediaInfo
 
 from .exceptions import FolderNotFoundException
-from .tmbd_utils import (
+from .tmdb_utils import (
     search_movie_tmbd_api_call,
     get_tmdb_metadata,
     download_tmdb_poster,
+    search_crew_tmdb_api_call
 )
 
 
@@ -43,6 +44,10 @@ class MovieMetadata:
             + time_obj.second
             + time_obj.microsecond / 1_000_000
         )
+    
+    def get_length_gui_format(self) -> str:
+        time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
+        return time_obj.strftime("%H:%M:%S")
 
 
 class VideoMetadataListReader:
@@ -76,7 +81,7 @@ class VideoMetadataListReader:
             
             # If poster download successful use that, else take a screenshot
             if os.path.exists(poster_download_path):
-                image = Image.open(poster_download_path).resize((200, 200), Image.Resampling.LANCZOS)
+                image = Image.open(poster_download_path).resize((200, 300), Image.Resampling.LANCZOS)
                 poster_image = ImageTk.PhotoImage(image)
             else:
                 poster_image = self._get_video_file_screenshot(
@@ -92,7 +97,7 @@ class VideoMetadataListReader:
                         else ""
                     ),
                     length=extracted_metadata["other_duration"][3],
-                    director="",
+                    director=tmdb_metadata["director"],
                     image=poster_image,
                     file_name=file_name,
                     full_path=full_path,
@@ -104,6 +109,8 @@ class VideoMetadataListReader:
                     tmdb_poster_path=tmdb_metadata["tmdb_poster_path"],
                 )
             )
+
+        self._metadata_list = sorted(self._metadata_list, key=lambda md: md.tmdb_title)
 
     def _read_video_file_names(self) -> list:
         if not os.path.isdir(self._folder_path):
@@ -133,11 +140,20 @@ class VideoMetadataListReader:
         if len(movie_name.split()[-1]) <= 2:
             movie_name = " ".join(movie_name.split()[0:-1])
 
+        is_tvshow = bool(re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", file_name))
+
         # API CALL
-        movie_data = search_movie_tmbd_api_call(movie_name)
+        movie_data = search_movie_tmbd_api_call(movie_name, is_tvshow)
 
         # Return dict with needed data
-        metadata = get_tmdb_metadata(movie_data)
+        metadata = get_tmdb_metadata(movie_data, is_tvshow)
+
+        # API CALL for Director name
+        director = ""
+        if metadata["tmdb_id"] != "":
+            director = search_crew_tmdb_api_call(metadata["tmdb_id"], is_tvshow)
+        
+        metadata["director"] = director
         return metadata
 
     # TODO: Get needed metadata
@@ -188,7 +204,7 @@ class VideoMetadataListReader:
             return None
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_pil = Image.fromarray(frame).resize((200, 200), Image.Resampling.LANCZOS)
+        frame_pil = Image.fromarray(frame).resize((200, 300), Image.Resampling.LANCZOS)
         return ImageTk.PhotoImage(image=frame_pil)
 
     def get_metadata_list(self) -> list[MovieMetadata]:

@@ -82,9 +82,9 @@ class App(tk.Tk):
                 self._configs["ConnectorIcon"]["Design"],
                 connector["image_path"],
                 connector["text"],
-                self._get_strategy_for_connector(
+                self._get_strategy_for_connector( # Inject click strategy
                     connector["text"]
-                )  # Inject click strategy
+                )
             )
 
             connector_button.grid(
@@ -114,6 +114,7 @@ class App(tk.Tk):
             try:
                 return yaml.safe_load(conf_f)
             except yaml.YAMLError as err:
+                print(err)
                 return err
 
     def _read_connector_data(self):
@@ -121,6 +122,7 @@ class App(tk.Tk):
             try:
                 return json.load(conf_c)
             except json.JSONDecodeError as err:
+                print(err)
                 return err
 
     def show_add_new_connector_modal(self):

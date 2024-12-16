@@ -2,6 +2,8 @@ import copy
 import time
 import tkinter as tk
 
+from tkinter.font import BOLD, Font
+
 from . import ConnectorClickStrategy
 from components import AppControlButton
 
@@ -60,17 +62,17 @@ class LocalMovieBrowserModal(tk.Toplevel):
                 col = 1
             col += 1
 
-            movie_card.grid(row=row, column=col)
+            movie_card.grid(row=row, column=col, padx=75, pady=25)
 
     def hide(self, e=None) -> None:
         self.withdraw()
         self._parent.focus()
-        self.config(cursor="none") 
+        self.config(cursor="none")
 
     def show(self) -> None:
         self.deiconify()
         self.focus()
-        self.config(cursor="") 
+        self.config(cursor="")
 
 
 class LocalMovieCard(tk.Frame):
@@ -83,63 +85,105 @@ class LocalMovieCard(tk.Frame):
         self._player = None
 
         self.configure(**self._config_params["Design"])
-        
-        title = tk.Label(
-            self,
-            text=f"title: {metadata.tmdb_title}",
-            **self._config_params["Entry"]["Design"],
+        self._config_params["Title"]["Placement"]["pady"] = tuple(
+            self._config_params["Title"]["Placement"]["pady"]
         )
-        title.pack()
 
-        year = tk.Label(
-            self,
-            text=f"year: {metadata.tmdb_year}",
-            **self._config_params["Entry"]["Design"],
-        )
-        year.pack()
+        # Fonts to be used
+        # title_font = Font(self, "TBD")
+        # year_director_font = Font(self, "TBD")
 
-        language = tk.Label(
-            self,
-            text=f"language: {metadata.language}",
-            **self._config_params["Entry"]["Design"],
-        )
-        language.pack()
-
-        length = tk.Label(
-            self,
-            text=f"length: {metadata.length}",
-            **self._config_params["Entry"]["Design"],
-        )
-        length.pack()
-
-        director = tk.Label(
-            self,
-            text=f"director: {metadata.director}",
-            **self._config_params["Entry"]["Design"],
-        )
-        director.pack
-
-        genres = tk.Label(
-            self,
-            text=f"genres: {', '.join(metadata.tmdb_genres)}",
-            **self._config_params["Entry"]["Design"],
-        )
-        genres.pack()
-
-        image_panel = tk.Label(
+        # Widget components
+        self._poster = tk.Label(
             self,
             image=metadata.image,
-            **self._config_params["Screenshot"]["Design"],
+            **self._config_params["Poster"]["Design"],
         )
-        image_panel.pack()
 
-        # Bind the left mouse button click event to the on_frame_click function
-        image_panel.bind("<Button-1>", self._open_player)
+        self._right_side_panel = tk.Frame(
+            self, **self._config_params["RightSidePanel"]["Design"]
+        )
 
-    def _open_player(self, e=None):
-        self._player = Player(self._parent, self._config_params["Player"], self._metadata.full_path, self._metadata.sub_path, self._metadata.get_length_sec())
+        self._title = tk.Label(
+            self._right_side_panel,
+            text=f"{metadata.tmdb_title}",
+            **self._config_params["Title"]["Design"],
+        )
+
+        self._year_director = tk.Label(
+            self._right_side_panel,
+            text=f"{metadata.tmdb_year} | {metadata.director}",
+            **self._config_params["Entry"]["Design"],
+        )
+
+        self._length = tk.Label(
+            self._right_side_panel,
+            text=f"{metadata.get_length_gui_format()}",
+            **self._config_params["Entry"]["Design"],
+        )
+
+        self._language = tk.Label(
+            self._right_side_panel,
+            text=f"{metadata.language.title()}",
+            **self._config_params["Entry"]["Design"],
+        )
+
+        self._play_button = tk.Button(
+            self._right_side_panel,
+            command=self._open_player,
+            **self._config_params["PlayButton"]["Design"],
+        )
+        self._play_button.bind("<Enter>", self._on_enter_play_button)
+        self._play_button.bind("<Leave>", self._on_exit_play_button)
+
+        self._overview = tk.Label(
+            self,
+            text=f"{metadata.tmdb_overview}",
+            **self._config_params["Overview"]["Design"],
+        )
+
+        self._genres = tk.Label(
+            self,
+            text=f"{' | '.join(metadata.tmdb_genres)}",
+            **self._config_params["Genres"]["Design"],
+        )
+
+        # Placement
+        self._poster.grid(**self._config_params["Poster"]["Placement"])
+        self._title.pack(**self._config_params["Title"]["Placement"])
+        self._year_director.pack(**self._config_params["Entry"]["Placement"])
+        self._language.pack(**self._config_params["Entry"]["Placement"])
+        self._play_button.pack(**self._config_params["PlayButton"]["Placement"])
+        self._length.pack(**self._config_params["Entry"]["Placement"])
+        self._right_side_panel.grid(
+            **self._config_params["RightSidePanel"]["Placement"]
+        )
+        self._overview.grid(**self._config_params["Overview"]["Placement"])
+        self._genres.grid(**self._config_params["Genres"]["Placement"])
+
+    def _open_player(self, e=None) -> None:
+        self._player = Player(
+            self._parent,
+            self._config_params["Player"],
+            self._metadata.full_path,
+            self._metadata.sub_path,
+            self._metadata.get_length_sec(),
+        )
         self._player.play()
-    
+
+    def _on_enter_play_button(self, e=None) -> None:
+        self._play_button.configure(
+            background=self._config_params["PlayButton"]["Design"]["foreground"],
+            foreground=self._config_params["PlayButton"]["Design"]["background"],
+        )
+
+    def _on_exit_play_button(self, e=None) -> None:
+        self._play_button.configure(
+            background=self._config_params["PlayButton"]["Design"]["background"],
+            foreground=self._config_params["PlayButton"]["Design"]["foreground"],
+        )
+
+
 class LocalConnectorClick(ConnectorClickStrategy):
     def __init__(self, parent: tk.Widget, config_params: dict):
         self._parent = parent
