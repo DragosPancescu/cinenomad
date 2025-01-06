@@ -1,8 +1,7 @@
 import copy
-import time
 import tkinter as tk
 
-from tkinter.font import BOLD, Font
+from tkinter import font
 
 from . import ConnectorClickStrategy
 from components import AppControlButton
@@ -88,10 +87,7 @@ class LocalMovieCard(tk.Frame):
         self._config_params["Title"]["Placement"]["pady"] = tuple(
             self._config_params["Title"]["Placement"]["pady"]
         )
-
-        # Fonts to be used
-        # title_font = Font(self, "TBD")
-        # year_director_font = Font(self, "TBD")
+    
 
         # Widget components
         self._poster = tk.Label(

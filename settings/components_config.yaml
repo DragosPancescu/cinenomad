@@ -220,7 +220,7 @@ LocalMovieBrowserModal:
         column: 0
         columnspan: 2
         sticky: nw
-  Player:
-    Design:
-      background: "#000000"
+    Player:
+      Design:
+        background: "#000000"
 ...

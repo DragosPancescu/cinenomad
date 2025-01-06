@@ -106,6 +106,7 @@ def get_tmdb_metadata(movie_data: dict, is_tvshow: bool) -> dict:
             "tmdb_genres": "",
             "tmdb_poster_path": "",
             "tmdb_id": "",
+            "tmdb_original_language": ""
         }
 
     title = movie_data["original_name"] if is_tvshow else movie_data["original_title"]
@@ -121,6 +122,7 @@ def get_tmdb_metadata(movie_data: dict, is_tvshow: bool) -> dict:
         "tmdb_genres": [genre_map(genre_id) for genre_id in movie_data["genre_ids"]],
         "tmdb_poster_path": movie_data["poster_path"],
         "tmdb_id": movie_data["id"],
+        "tmdb_original_language": movie_data["original_language"]
     }
 
     return tmdb_metadata

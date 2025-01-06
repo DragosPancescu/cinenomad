@@ -1,6 +1,7 @@
 import os
 import re
 import yaml
+import copy
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -9,6 +10,7 @@ import cv2
 
 from PIL import Image, ImageTk
 from pymediainfo import MediaInfo
+from langcodes import Language
 
 from .exceptions import FolderNotFoundException
 from .tmdb_utils import (
@@ -92,9 +94,9 @@ class VideoMetadataListReader:
             self._metadata_list.append(
                 MovieMetadata(
                     language=(
-                        extracted_metadata["audio_language_list"]
-                        if "audio_language_list" in extracted_metadata.keys()
-                        else ""
+                        Language.get(extracted_metadata["language"]).display_name()
+                        if "language" in extracted_metadata.keys() and extracted_metadata["language"] != ""
+                        else Language.get(tmdb_metadata["tmdb_original_language"]).display_name()
                     ),
                     length=extracted_metadata["other_duration"][3],
                     director=tmdb_metadata["director"],
@@ -168,9 +170,18 @@ class VideoMetadataListReader:
         """
         media_info = MediaInfo.parse(video_file_path)
 
-        for track in media_info.tracks:
-            if track.track_type == "General":
-                return track.to_data()
+        general_track = list(filter(lambda track: track.track_type == "General", media_info.tracks))[0]
+        audio_track = list(filter(lambda track: track.track_type == "Audio", media_info.tracks))[0]
+
+        language = ""
+        if "language" in audio_track.to_data().keys():
+            language = audio_track.to_data()["language"]
+
+        metadata = copy.deepcopy(general_track.to_data())
+        metadata["language"] = language
+
+        return metadata
+
 
     # TODO: Find a way to get nice screenshots
     # TODO: Get metadata frame for screenshot
