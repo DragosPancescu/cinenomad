@@ -99,6 +99,18 @@ ConnectorsFrame:
     y: -100
     anchor: center
 
+VersionTag:
+  Design:
+    background: "#282828"
+    foreground: "#D9D9D9"
+  Placement:
+    Placement:
+    relx: 1
+    rely: 1
+    y: -25
+    x: -65
+    anchor: center
+
 AddMovieSourceModal:
   title: "Add new movie source"
   Design:
@@ -223,4 +235,28 @@ LocalMovieBrowserModal:
     Player:
       Design:
         background: "#000000"
+      PlayerMenu:
+        Design:
+          background: "#D9D9D9"
+          borderwidth: 0
+          relief: sunken
+        Buttons:
+          Design:
+            borderwidth: 0
+            activebackground: "#D9D9D9"
+        Timestamp:
+          Design:
+            foreground: "#282828"
+        Timeslider:
+          Design:
+            orientation: horizontal
+            progress_color: "#2B86F2"
+            fg_color: "#282828"
+            button_color: "#282828"
+            hover: false
+        
+NetflixBrowserModal:
+  title: "Browse Netflix"
+  Design:
+    background: "#282828"
 ...

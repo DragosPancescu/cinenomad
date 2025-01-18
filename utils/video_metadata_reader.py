@@ -17,7 +17,7 @@ from .tmdb_utils import (
     search_movie_tmbd_api_call,
     get_tmdb_metadata,
     download_tmdb_poster,
-    search_crew_tmdb_api_call
+    search_crew_tmdb_api_call,
 )
 
 
@@ -46,7 +46,7 @@ class MovieMetadata:
             + time_obj.second
             + time_obj.microsecond / 1_000_000
         )
-    
+
     def get_length_gui_format(self) -> str:
         time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
         return time_obj.strftime("%H:%M:%S")
@@ -80,10 +80,12 @@ class VideoMetadataListReader:
             download_tmdb_poster(
                 tmdb_metadata["tmdb_poster_path"], poster_download_path
             )
-            
+
             # If poster download successful use that, else take a screenshot
             if os.path.exists(poster_download_path):
-                image = Image.open(poster_download_path).resize((200, 300), Image.Resampling.LANCZOS)
+                image = Image.open(poster_download_path).resize(
+                    (200, 300), Image.Resampling.LANCZOS
+                )
                 poster_image = ImageTk.PhotoImage(image)
             else:
                 poster_image = self._get_video_file_screenshot(
@@ -95,8 +97,15 @@ class VideoMetadataListReader:
                 MovieMetadata(
                     language=(
                         Language.get(extracted_metadata["language"]).display_name()
-                        if "language" in extracted_metadata.keys() and extracted_metadata["language"] != ""
-                        else Language.get(tmdb_metadata["tmdb_original_language"]).display_name()
+                        if "language" in extracted_metadata.keys()
+                        and extracted_metadata["language"] != ""
+                        else (
+                            Language.get(
+                                tmdb_metadata["tmdb_original_language"]
+                            ).display_name()
+                            if tmdb_metadata["tmdb_original_language"] != ""
+                            else "N/A"
+                        )
                     ),
                     length=extracted_metadata["other_duration"][3],
                     director=tmdb_metadata["director"],
@@ -154,7 +163,7 @@ class VideoMetadataListReader:
         director = ""
         if metadata["tmdb_id"] != "":
             director = search_crew_tmdb_api_call(metadata["tmdb_id"], is_tvshow)
-        
+
         metadata["director"] = director
         return metadata
 
@@ -170,8 +179,12 @@ class VideoMetadataListReader:
         """
         media_info = MediaInfo.parse(video_file_path)
 
-        general_track = list(filter(lambda track: track.track_type == "General", media_info.tracks))[0]
-        audio_track = list(filter(lambda track: track.track_type == "Audio", media_info.tracks))[0]
+        general_track = list(
+            filter(lambda track: track.track_type == "General", media_info.tracks)
+        )[0]
+        audio_track = list(
+            filter(lambda track: track.track_type == "Audio", media_info.tracks)
+        )[0]
 
         language = ""
         if "language" in audio_track.to_data().keys():
@@ -181,7 +194,6 @@ class VideoMetadataListReader:
         metadata["language"] = language
 
         return metadata
-
 
     # TODO: Find a way to get nice screenshots
     # TODO: Get metadata frame for screenshot

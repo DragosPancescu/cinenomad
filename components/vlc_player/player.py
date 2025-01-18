@@ -9,6 +9,10 @@ import threading
 import tkinter as tk
 
 from typing import Callable
+from datetime import timedelta
+
+from PIL import Image, ImageTk, UnidentifiedImageError
+import customtkinter as ctk
 
 
 class Player(tk.Toplevel):
@@ -30,7 +34,7 @@ class Player(tk.Toplevel):
         self.vlc_player_config_path = "settings/vlc_player_config.yaml"
         self._vlc_player_config = self._read_config()
         self._scale_updating = (
-            False  # Track if the scale is being updated by the player
+            False  # Tracks if the scale is being updated by the player
         )
         self._total_seconds = total_seconds
 
@@ -104,6 +108,7 @@ class Player(tk.Toplevel):
         # Add controls
         self._menu = PlayerMenu(
             self,
+            self._config_params["PlayerMenu"],
             self.play,
             self.stop,
             self.go_forward,
@@ -119,7 +124,9 @@ class Player(tk.Toplevel):
         event_manager = self._player.event_manager()
 
         # Setup update timeslider on media position change
-        event_manager.event_attach(vlc.EventType.MediaPlayerPositionChanged, self._update_timeslider)
+        event_manager.event_attach(
+            vlc.EventType.MediaPlayerPositionChanged, self._update_timeslider
+        )
 
     def _update_timeslider(self, e=None):
         """Callback for when the media player's position changes."""
@@ -238,6 +245,7 @@ class PlayerMenu(tk.Toplevel):
     def __init__(
         self,
         parent: Player,
+        config_params: dict,
         play_callback: Callable,
         stop_callback: Callable,
         go_forward_callback: Callable,
@@ -251,54 +259,114 @@ class PlayerMenu(tk.Toplevel):
         self.wm_overrideredirect(True)
 
         self._parent = parent
+        self._config_params = copy.deepcopy(config_params)
+        self._total_seconds = total_seconds
+
+        # Configure self
+        self.configure(**self._config_params["Design"])
 
         # Used for moving the menu around
         self.x_offset = None
         self.y_offset = None
         self.is_dragging = False
 
-        self._play_button = tk.Button(self, text="Play")
+        # Configure Play button
+        self._play_button_icon = self._read_icon_image(
+            "resources/player_buttons/Play.png"
+        )
+        self._play_button = tk.Button(
+            self,
+            image=self._play_button_icon,
+            **self._config_params["Buttons"]["Design"],
+        )
         self._play_button.configure(command=play_callback)
 
-        self._stop_button = tk.Button(self, text="Stop")
+        # Configure Stop button
+        self._stop_button_icon = self._read_icon_image(
+            "resources/player_buttons/Pause.png"
+        )
+        self._stop_button = tk.Button(
+            self,
+            image=self._stop_button_icon,
+            **self._config_params["Buttons"]["Design"],
+        )
         self._stop_button.configure(command=stop_callback)
 
-        self._close_button = tk.Button(self, text="Close")
-        self._close_button.configure(command=self._parent.close)
-
-        self._forward_button = tk.Button(self, text="Forward")
+        # Configure Forward button
+        self._forward_button_icon = self._read_icon_image(
+            "resources/player_buttons/Forward.png"
+        )
+        self._forward_button = tk.Button(
+            self,
+            image=self._forward_button_icon,
+            **self._config_params["Buttons"]["Design"],
+        )
         self._forward_button.configure(command=go_forward_callback)
 
-        self._backwards_button = tk.Button(self, text="Backwards")
+        # Configure Backward button
+        self._backward_button_icon = self._read_icon_image(
+            "resources/player_buttons/Backward.png"
+        )
+        self._backwards_button = tk.Button(
+            self,
+            image=self._backward_button_icon,
+            **self._config_params["Buttons"]["Design"],
+        )
         self._backwards_button.configure(command=go_backwards_callback)
 
-        self._timeslider = tk.Scale(
+        self._timeslider = ctk.CTkSlider(
             self,
             from_=0,
             to=total_seconds,
-            orient=tk.HORIZONTAL,
             command=lambda value: timeslider_callback(int(value)),
+            **self._config_params["Timeslider"]["Design"],
         )
 
-        self._play_button.grid(row=0, column=0, padx=5, pady=10)
-        self._stop_button.grid(row=0, column=1, padx=5, pady=10)
-        self._backwards_button.grid(row=0, column=2, padx=5, pady=10)
-        self._forward_button.grid(row=0, column=3, padx=5, pady=10)
-        self._close_button.grid(row=0, column=4, padx=5, pady=10)
+        self._current_time = tk.Label(
+            self,
+            text=self._format_seconds(0),
+            **self._config_params["Timestamp"]["Design"],
+        )
+
+        self._duration = tk.Label(
+            self,
+            text=self._format_seconds(self._total_seconds),
+            **self._config_params["Timestamp"]["Design"],
+        )
+
+        self.grid_columnconfigure(0, weight=1, minsize=75)
+        self.grid_columnconfigure(1, weight=1, minsize=100)
+        self.grid_columnconfigure(6, weight=1, minsize=100)
+        self.grid_columnconfigure(7, weight=1, minsize=75)
+
+        tk.Label(self).grid(row=0, column=0, padx=5, pady=(35, 10))
+        tk.Label(self).grid(row=0, column=1, padx=5, pady=(35, 10))
+        self._play_button.grid(row=0, column=2, padx=5, pady=(35, 10))
+        self._stop_button.grid(row=0, column=3, padx=5, pady=(35, 10))
+        self._forward_button.grid(row=0, column=4, padx=5, pady=(35, 10))
+        self._backwards_button.grid(row=0, column=5, padx=5, pady=(35, 10))
+        tk.Label(self).grid(row=0, column=6, padx=5, pady=(35, 10))
+        tk.Label(self).grid(row=0, column=7, padx=5, pady=(35, 10))
+
+        self._current_time.grid(row=1, column=0, pady=(20, 35))
         self._timeslider.grid(
-            row=1, column=0, columnspan=5, sticky=tk.W + tk.E, padx=10, pady=10
+            row=1, column=1, columnspan=6, sticky=tk.W + tk.E, padx=5, pady=(20, 35)
         )
-
-        # Initial placement on screen
-        self._place_bottom_center()
+        self._duration.grid(row=1, column=7, pady=(20, 35))
 
         # Bindings
         self.bind("<ButtonPress-1>", self._start_drag)
         self.bind("<B1-Motion>", self._drag_motion)
         self.bind("<ButtonRelease-1>", self._stop_drag)
 
+        # Initial placement on screen
+        self._place_bottom_center()
+
     def set_timeslider_value(self, value):
         self._timeslider.set(value)
+        self._current_time.configure(
+            text=self._format_seconds(value),
+        )
 
     def _place_bottom_center(self) -> None:
         self._parent.update_idletasks()
@@ -344,3 +412,13 @@ class PlayerMenu(tk.Toplevel):
 
     def hide(self) -> None:
         self.withdraw()
+
+    def _read_icon_image(self, path: str) -> ImageTk.PhotoImage:
+        try:
+            button_png = Image.open(path).convert("RGBA")
+            return ImageTk.PhotoImage(button_png)
+        except UnidentifiedImageError as err:
+            return err.strerror
+
+    def _format_seconds(self, seconds: int) -> str:
+        return str(timedelta(seconds=seconds))

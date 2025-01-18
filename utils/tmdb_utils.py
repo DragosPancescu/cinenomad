@@ -65,7 +65,8 @@ def search_crew_tmdb_api_call(tmdb_id: str, is_tvshow: bool) -> str:
 
     response_dict = json.loads(response.text)
     directors_iterator = filter(
-        lambda pers: pers["job"] == "Director", response_dict["crew"]
+        lambda pers: pers["job"] == "Producer" if is_tvshow else pers["job"] == "Director", 
+        response_dict["crew"]
     )
 
     director_data = next(directors_iterator, None)

@@ -56,7 +56,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
             )
 
             # Position on the grid
-            if idx > 0 and idx % 5 == 0:
+            if idx > 0 and idx % 4 == 0:
                 row += 1
                 col = 1
             col += 1
