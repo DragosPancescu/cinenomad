@@ -28,6 +28,20 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.wm_overrideredirect(True)
         self.configure(**self._config_params["Design"])
 
+        self._canvas = tk.Canvas(
+            self,
+            borderwidth=0,
+            highlightthickness=0,
+            relief="sunken",
+            background="#282828",
+        )
+        self._frame = tk.Frame(self._canvas, background="#282828")
+
+        self._canvas.pack(side="left", fill="both", expand=True)
+        self._canvas.create_window(
+            (4, 4), window=self._frame, anchor="nw", tags="self._frame"
+        )
+
         # Make fullscreen
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0")
 
@@ -48,11 +62,17 @@ class LocalMovieBrowserModal(tk.Toplevel):
         metadata_reader = VideoMetadataListReader(FOLDER_PATH)
         self._metadata = metadata_reader.get_metadata_list()
 
+        if len(self._metadata) > 12:
+            self._frame.bind("<Configure>", self._on_frame_configure)
+            # Bind mouse wheel scrolling
+            self.bind_all("<Button-4>", self._on_mousewheel)
+            self.bind_all("<Button-5>", self._on_mousewheel)
+
         # Init player manager
         row, col = 1, 1
         for idx, metadata in enumerate(self._metadata):
             movie_card = LocalMovieCard(
-                self, self._config_params["LocalMovieCard"], metadata
+                self._frame, self._config_params["LocalMovieCard"], metadata
             )
 
             # Position on the grid
@@ -61,7 +81,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
                 col = 1
             col += 1
 
-            movie_card.grid(row=row, column=col, padx=75, pady=25)
+            movie_card.grid(row=row, column=col, padx=70, pady=12)
 
     def hide(self, e=None) -> None:
         self.withdraw()
@@ -72,6 +92,17 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.deiconify()
         self.focus()
         self.config(cursor="")
+
+    def _on_frame_configure(self, event):
+        """Reset the scroll region to encompass the inner frame"""
+        self._canvas.configure(scrollregion=self._canvas.bbox("all"))
+
+    def _on_mousewheel(self, event):
+        """Scroll the canvas using the mouse wheel"""
+        if event.num == 4:  # Scroll up
+            self._canvas.yview_scroll(-1, "units")
+        elif event.num == 5:  # Scroll down
+            self._canvas.yview_scroll(1, "units")
 
 
 class LocalMovieCard(tk.Frame):
@@ -87,7 +118,6 @@ class LocalMovieCard(tk.Frame):
         self._config_params["Title"]["Placement"]["pady"] = tuple(
             self._config_params["Title"]["Placement"]["pady"]
         )
-    
 
         # Widget components
         self._poster = tk.Label(

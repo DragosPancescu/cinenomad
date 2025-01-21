@@ -150,6 +150,7 @@ LocalMovieBrowserModal:
   title: "Browse Local"
   Design:
     background: "#282828"
+    borderwidth: 0
   LocalMovieBrowserModalCloseButton: 
     <<: *closebutton
   LocalMovieCard:
