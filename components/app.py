@@ -5,11 +5,7 @@ import tkinter as tk
 
 from tk_alert import AlertGenerator
 
-from .strategy import (
-    ConnectorClickStrategy,
-    NetflixConnectorClick,
-    LocalConnectorClick
-)
+from .strategy import ConnectorClickStrategy, NetflixConnectorClick, LocalConnectorClick
 
 from components import (
     AppControlButton,
@@ -23,14 +19,9 @@ from components import (
 
 class App(tk.Tk):
     def __init__(self):
-        print("App started")
-
         super().__init__()
 
-        # Alert object
-        self._alert_generator = AlertGenerator(self)
-
-        # Configure
+        ####### Configure #######
         self.config_path = "settings/components_config.yaml"
         self._configs = self._read_config()  # TODO: Check error
 
@@ -43,7 +34,10 @@ class App(tk.Tk):
         # Controls
         self.bind("<Escape>", self.close)
 
-        # ----- Widgets
+        # Alert object
+        self._alert_generator = AlertGenerator(self)
+
+        ####### Widgets #######
         # Close button
         self.close_button = AppControlButton(
             self, self._configs["CloseButton"]["Design"]
@@ -74,31 +68,7 @@ class App(tk.Tk):
             len(self._connector_data),
         )
         self.connectors_frame.place(**self._configs["ConnectorsFrame"]["Placement"])
-
-        for idx, connector in enumerate(self._connector_data):
-            # TODO: Check if image is available
-            connector_button = ConnectorIcon(
-                self.connectors_frame,
-                self._configs["ConnectorIcon"]["Design"],
-                connector["image_path"],
-                connector["text"],
-                self._get_strategy_for_connector( # Inject click strategy
-                    connector["text"]
-                )
-            )
-
-            connector_button.grid(
-                column=idx, **self._configs["ConnectorIcon"]["Placement"]
-            )
-
-            connector_label = ConnectorLabel(
-                self.connectors_frame,
-                self._configs["ConnectorLabel"]["Design"],
-                connector["text"]
-            )
-            connector_label.grid(
-                column=idx, **self._configs["ConnectorLabel"]["Placement"]
-            )
+        self._place_connector_widgets()
 
         # Add new connector modal (toplevel)
         self.new_connector_modal = AddMovieSourceModal(
@@ -107,11 +77,14 @@ class App(tk.Tk):
         self.new_connector_modal.withdraw()  # Keep it hidden
 
         # Version tag
-        self.version_tag = tk.Label(self, text="v0.0.0-alpha", **self._configs["VersionTag"]["Design"])
+        self.version_tag = tk.Label(
+            self, text="v0.0.0-alpha", **self._configs["VersionTag"]["Design"]
+        )
         self.version_tag.place(**self._configs["VersionTag"]["Placement"])
 
-        # Render loop
-        self.mainloop()
+    def show_add_new_connector_modal(self):
+        self.new_connector_modal.deiconify()
+        self.new_connector_modal.focus()
 
     def _read_config(self):
         with open(self.config_path) as conf_f:
@@ -129,9 +102,30 @@ class App(tk.Tk):
                 print(err)
                 return err
 
-    def show_add_new_connector_modal(self):
-        self.new_connector_modal.deiconify()
-        self.new_connector_modal.focus()
+    def _place_connector_widgets(self):
+        for idx, connector in enumerate(self._connector_data):
+            # TODO: Check if image is available
+            connector_button = ConnectorIcon(
+                self.connectors_frame,
+                self._configs["ConnectorIcon"]["Design"],
+                connector["image_path"],
+                connector["text"],
+                self._get_strategy_for_connector(  # Inject click strategy
+                    connector["text"]
+                ),
+            )
+            connector_button.grid(
+                column=idx, **self._configs["ConnectorIcon"]["Placement"]
+            )
+
+            connector_label = ConnectorLabel(
+                self.connectors_frame,
+                self._configs["ConnectorLabel"]["Design"],
+                connector["text"],
+            )
+            connector_label.grid(
+                column=idx, **self._configs["ConnectorLabel"]["Placement"]
+            )
 
     def _get_strategy_for_connector(self, name: str) -> ConnectorClickStrategy:
         if name == "Netflix":
@@ -141,7 +135,7 @@ class App(tk.Tk):
         else:
             return None
 
-    def close(self, e=None):
+    def close(self, event=None):
         print("App closed")
         self.quit()
         self.destroy()

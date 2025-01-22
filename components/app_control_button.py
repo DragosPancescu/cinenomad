@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 class AppControlButton(tk.Button):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
+        
         # Get config params
         self._config_params = copy.deepcopy(config_params)
 

@@ -15,7 +15,8 @@ def main():
     ctypes.CDLL("libX11.so").XInitThreads()
 
     # Start app
-    App()
+    app = App()
+    app.mainloop()
 
 
 if __name__ == "__main__":
