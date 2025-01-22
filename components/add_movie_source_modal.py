@@ -6,14 +6,15 @@ class AddMovieSourceModal(tk.Toplevel):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
         self._parent = parent
-        self.focus()
 
+        # Configure
         self._config_params = copy.deepcopy(config_params)
-
         self.title(self._config_params["title"])
+        self.geometry("600x300")
         self.resizable(False, False)
         self.wm_overrideredirect(True)
         self.configure(**self._config_params["Design"])
+        self.focus()
 
         # Controls
         self.bind("<Escape>", self.close)
@@ -52,8 +53,6 @@ class AddMovieSourceModal(tk.Toplevel):
         self.close()
 
     def _center(self) -> None:
-        self.geometry("600x300")
-
         self._parent.update_idletasks()
         self.update_idletasks()
 
@@ -74,6 +73,6 @@ class AddMovieSourceModal(tk.Toplevel):
         # Position the toplevel window
         self.geometry(f"{toplevel_width}x{toplevel_height}+{x}+{y}")
 
-    def close(self, e=None) -> None:
+    def close(self, event=None) -> None:
         self.withdraw()
         self._parent.focus()

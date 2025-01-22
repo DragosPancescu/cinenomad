@@ -1,8 +1,6 @@
 import copy
 import tkinter as tk
 
-from tkinter import font
-
 from . import ConnectorClickStrategy
 from components import AppControlButton
 
@@ -13,42 +11,32 @@ from ..vlc_player import Player
 # TODO: This will be configurable on first use or after in the settings menu.
 FOLDER_PATH = r"/home/dragos/Downloads/input"
 
-
 class LocalMovieBrowserModal(tk.Toplevel):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
         self._parent = parent
-        self.withdraw()  # Init in closed state
 
         self._config_params = copy.deepcopy(config_params)
 
+        # Configure
+        self.withdraw()  # Init in closed state
         self.focus()
         self.title(self._config_params["title"])
         self.resizable(False, False)
         self.wm_overrideredirect(True)
         self.configure(**self._config_params["Design"])
+        # Make fullscreen
+        self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0")
 
-        self._canvas = tk.Canvas(
-            self,
-            borderwidth=0,
-            highlightthickness=0,
-            relief="sunken",
-            background="#282828",
-        )
-        self._frame = tk.Frame(self._canvas, background="#282828")
+        # Widgets
+        self._canvas = tk.Canvas(self, **self._config_params["Canvas"]["Design"])
+        self._frame = tk.Frame(self._canvas, **self._config_params["Frame"]["Design"])
 
-        self._canvas.pack(side="left", fill="both", expand=True)
+        self._canvas.pack(**self._config_params["Canvas"]["Placement"])
         self._canvas.create_window(
             (4, 4), window=self._frame, anchor="nw", tags="self._frame"
         )
 
-        # Make fullscreen
-        self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0")
-
-        # Controls
-        self.bind("<Escape>", self.hide)
-
-        # Widgets
         # Close button
         self.close_button = AppControlButton(
             self, self._config_params["LocalMovieBrowserModalCloseButton"]["Design"]
@@ -74,7 +62,6 @@ class LocalMovieBrowserModal(tk.Toplevel):
             movie_card = LocalMovieCard(
                 self._frame, self._config_params["LocalMovieCard"], metadata
             )
-
             # Position on the grid
             if idx > 0 and idx % 4 == 0:
                 row += 1
@@ -83,7 +70,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
             movie_card.grid(row=row, column=col, padx=70, pady=12)
 
-    def hide(self, e=None) -> None:
+    def hide(self, event=None) -> None:
         self.withdraw()
         self._parent.focus()
         self.config(cursor="none")
@@ -93,11 +80,11 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.focus()
         self.config(cursor="")
 
-    def _on_frame_configure(self, event):
+    def _on_frame_configure(self, event) -> None:
         """Reset the scroll region to encompass the inner frame"""
         self._canvas.configure(scrollregion=self._canvas.bbox("all"))
 
-    def _on_mousewheel(self, event):
+    def _on_mousewheel(self, event) -> None:
         """Scroll the canvas using the mouse wheel"""
         if event.num == 4:  # Scroll up
             self._canvas.yview_scroll(-1, "units")
@@ -213,10 +200,10 @@ class LocalMovieCard(tk.Frame):
 class LocalConnectorClick(ConnectorClickStrategy):
     def __init__(self, parent: tk.Widget, config_params: dict):
         self._parent = parent
-        self._config_params = config_params
+        self._config_params = copy.deepcopy(config_params)
         self._window = None
 
-    def execute(self):
+    def execute(self) -> None:
         if self._window == None:
             self._window = LocalMovieBrowserModal(self._parent, self._config_params)
         self._window.show()

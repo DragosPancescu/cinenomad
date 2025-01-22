@@ -14,8 +14,11 @@ def main():
     # Ensure Xlib is thread-safe
     ctypes.CDLL("libX11.so").XInitThreads()
 
+    config_path = "settings/components_config.yaml"
+    connector_data_path = "connectors/connector_obj.json"
+
     # Start app
-    app = App()
+    app = App(config_path, connector_data_path)
     app.mainloop()
 
 

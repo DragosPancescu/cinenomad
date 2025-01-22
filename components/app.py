@@ -1,11 +1,5 @@
-import yaml
-import json
-
 import tkinter as tk
-
-from tk_alert import AlertGenerator
-
-from .strategy import ConnectorClickStrategy, NetflixConnectorClick, LocalConnectorClick
+from typing import Optional
 
 from components import (
     AppControlButton,
@@ -16,17 +10,25 @@ from components import (
     AddMovieSourceModal,
 )
 
+from .strategy import ConnectorClickStrategy, NetflixConnectorClick, LocalConnectorClick
+from utils.file_handling import load_json_file, load_yaml_file
+from tk_alert import AlertGenerator
+
+import yaml
+import json
+
 
 class App(tk.Tk):
-    def __init__(self):
+    """Main app class"""
+
+    def __init__(self, config_path: str, connector_data_path: str):
         super().__init__()
 
         ####### Configure #######
-        self.config_path = "settings/components_config.yaml"
-        self._configs = self._read_config()  # TODO: Check error
-
-        self.connector_data_path = "connectors/connector_obj.json"
-        self._connector_data = self._read_connector_data()  # TODO: Check error
+        self._configs = load_yaml_file(config_path)
+        if self._configs == None:
+            self.close()
+            raise Exception("Cannot start application, encountered errors while loading the config file.")
 
         self.configure(**self._configs["App"])
         self.attributes("-fullscreen", True)
@@ -62,13 +64,16 @@ class App(tk.Tk):
         self.new_connector_button.configure(command=self.show_add_new_connector_modal)
 
         # Connectors
-        self.connectors_frame = ConnectorsFrame(
-            self,
-            self._configs["ConnectorsFrame"]["Design"],
-            len(self._connector_data),
-        )
-        self.connectors_frame.place(**self._configs["ConnectorsFrame"]["Placement"])
-        self._place_connector_widgets()
+        self._connector_data = load_json_file(connector_data_path)
+
+        if self._connector_data != None and len(self._connector_data) != 0:
+            self.connectors_frame = ConnectorsFrame(
+                self,
+                self._configs["ConnectorsFrame"]["Design"],
+                len(self._connector_data),
+            )
+            self.connectors_frame.place(**self._configs["ConnectorsFrame"]["Placement"])
+            self._place_connectors()
 
         # Add new connector modal (toplevel)
         self.new_connector_modal = AddMovieSourceModal(
@@ -82,29 +87,13 @@ class App(tk.Tk):
         )
         self.version_tag.place(**self._configs["VersionTag"]["Placement"])
 
-    def show_add_new_connector_modal(self):
+    def show_add_new_connector_modal(self) -> None:
+        """Makes the 'Add new connector modal' visible and brings the focus to it."""
         self.new_connector_modal.deiconify()
         self.new_connector_modal.focus()
 
-    def _read_config(self):
-        with open(self.config_path) as conf_f:
-            try:
-                return yaml.safe_load(conf_f)
-            except yaml.YAMLError as err:
-                print(err)
-                return err
-
-    def _read_connector_data(self):
-        with open(self.connector_data_path) as conf_c:
-            try:
-                return json.load(conf_c)
-            except json.JSONDecodeError as err:
-                print(err)
-                return err
-
-    def _place_connector_widgets(self):
+    def _place_connectors(self) -> None:
         for idx, connector in enumerate(self._connector_data):
-            # TODO: Check if image is available
             connector_button = ConnectorIcon(
                 self.connectors_frame,
                 self._configs["ConnectorIcon"]["Design"],
@@ -127,15 +116,20 @@ class App(tk.Tk):
                 column=idx, **self._configs["ConnectorLabel"]["Placement"]
             )
 
-    def _get_strategy_for_connector(self, name: str) -> ConnectorClickStrategy:
+    def _get_strategy_for_connector(self, name: str) -> Optional[ConnectorClickStrategy]:
         if name == "Netflix":
             return NetflixConnectorClick(self, self._configs["NetflixBrowserModal"])
-        elif name == "Local":
+        if name == "Local":
             return LocalConnectorClick(self, self._configs["LocalMovieBrowserModal"])
-        else:
-            return None
+        return None
 
-    def close(self, event=None):
+    def close(self, event=None) -> None:
+        """Close functionality for the main app.
+
+        Args:
+            event (n/a, optional): Event sent by the event handler in Tkinter. Defaults to None.
+        """
+        # TODO: Logger
         print("App closed")
         self.quit()
         self.destroy()

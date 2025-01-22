@@ -151,6 +151,19 @@ LocalMovieBrowserModal:
   Design:
     background: "#282828"
     borderwidth: 0
+  Canvas:
+    Design:
+      borderwidth: 0
+      highlightthickness: 0
+      relief: sunken,
+      background: "#282828"
+    Placement:
+      side: left
+      fill: both
+      expand: true
+  Frame:
+    Design:
+      background: "#282828"
   LocalMovieBrowserModalCloseButton: 
     <<: *closebutton
   LocalMovieCard:
