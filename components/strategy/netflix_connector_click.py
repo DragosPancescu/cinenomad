@@ -1,9 +1,9 @@
+import tkinter as tk
 import copy
 
-from . import ConnectorClickStrategy
 from utils.chrome import open_flatpak_chrome, close_chrome
-
-import tkinter as tk
+from utils.file_handling import load_yaml_file
+from . import ConnectorClickStrategy
 
 
 class NetflixBrowserModal(tk.Toplevel):
@@ -26,15 +26,9 @@ class NetflixBrowserModal(tk.Toplevel):
         # Controls
         self.bind("<Escape>", self.close)
 
-        self._args = [
-            "-kiosk",
-            "--new-window",
-            "--hide-scrollbars",
-            "--force-device-scale-factor",
-        ]
+        self._args = load_yaml_file("./settings/chrome_process_config.yaml")
         self._profile = "Profile 1"
         self._process = None
-
     
 
     def close(self, event=None) -> None:
@@ -54,6 +48,6 @@ class NetflixConnectorClick(ConnectorClickStrategy):
         self._window = None
 
     def execute(self) -> None:
-        if self._window == None:
+        if self._window is None:
             self._window = NetflixBrowserModal(self._parent, self._config_params)
         self._window.show()

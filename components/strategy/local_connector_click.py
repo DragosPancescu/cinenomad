@@ -1,17 +1,19 @@
 import copy
 import tkinter as tk
 
-from . import ConnectorClickStrategy
 from components import AppControlButton
-
 from utils import VideoMetadataListReader, MovieMetadata
 
+from . import ConnectorClickStrategy
 from ..vlc_player import Player
 
 # TODO: This will be configurable on first use or after in the settings menu.
 FOLDER_PATH = r"/home/dragos/Downloads/input"
 
+
 class LocalMovieBrowserModal(tk.Toplevel):
+    """Modal window that serves as a browser for local media"""
+
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
         self._parent = parent
@@ -48,7 +50,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
         # Movie Buttons
         metadata_reader = VideoMetadataListReader(FOLDER_PATH)
-        self._metadata = metadata_reader.get_metadata_list()
+        self._metadata = metadata_reader.metadata_list
 
         if len(self._metadata) > 12:
             self._frame.bind("<Configure>", self._on_frame_configure)
@@ -71,16 +73,22 @@ class LocalMovieBrowserModal(tk.Toplevel):
             movie_card.grid(row=row, column=col, padx=70, pady=12)
 
     def hide(self, event=None) -> None:
+        """Hides the modal and gives back the focus to the parent Widget
+
+        Args:
+            event (, optional): Tkinter binding event. Defaults to None.
+        """
         self.withdraw()
         self._parent.focus()
         self.config(cursor="none")
 
     def show(self) -> None:
+        """Shows the modal and sets the focus"""
         self.deiconify()
         self.focus()
         self.config(cursor="")
 
-    def _on_frame_configure(self, event) -> None:
+    def _on_frame_configure(self, event=None) -> None:
         """Reset the scroll region to encompass the inner frame"""
         self._canvas.configure(scrollregion=self._canvas.bbox("all"))
 
@@ -93,14 +101,17 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
 
 class LocalMovieCard(tk.Frame):
+    """Card that hold meta information about the movie, poster / screenshot and the play button"""
+
     def __init__(self, parent: tk.Widget, config_params: dict, metadata: MovieMetadata):
         super().__init__(parent)
         self._parent = parent
-
-        self._config_params = copy.deepcopy(config_params)
         self._metadata = metadata
         self._player = None
+        self._colors_switch = False
 
+        # Configure
+        self._config_params = copy.deepcopy(config_params)
         self.configure(**self._config_params["Design"])
         self._config_params["Title"]["Placement"]["pady"] = tuple(
             self._config_params["Title"]["Placement"]["pady"]
@@ -119,13 +130,13 @@ class LocalMovieCard(tk.Frame):
 
         self._title = tk.Label(
             self._right_side_panel,
-            text=f"{metadata.tmdb_title}",
+            text=f"{metadata.tmdb_data.title}",
             **self._config_params["Title"]["Design"],
         )
 
         self._year_director = tk.Label(
             self._right_side_panel,
-            text=f"{metadata.tmdb_year} | {metadata.director}",
+            text=f"{metadata.tmdb_data.year} | {metadata.tmdb_data.director}",
             **self._config_params["Entry"]["Design"],
         )
 
@@ -146,18 +157,18 @@ class LocalMovieCard(tk.Frame):
             command=self._open_player,
             **self._config_params["PlayButton"]["Design"],
         )
-        self._play_button.bind("<Enter>", self._on_enter_play_button)
-        self._play_button.bind("<Leave>", self._on_exit_play_button)
+        self._play_button.bind("<Enter>", self._on_hover_switch_colors)
+        self._play_button.bind("<Leave>", self._on_hover_switch_colors)
 
         self._overview = tk.Label(
             self,
-            text=f"{metadata.tmdb_overview}",
+            text=f"{metadata.tmdb_data.overview}",
             **self._config_params["Overview"]["Design"],
         )
 
         self._genres = tk.Label(
             self,
-            text=f"{' | '.join(metadata.tmdb_genres)}",
+            text=f"{' | '.join(metadata.tmdb_data.genres)}",
             **self._config_params["Genres"]["Design"],
         )
 
@@ -174,36 +185,36 @@ class LocalMovieCard(tk.Frame):
         self._overview.grid(**self._config_params["Overview"]["Placement"])
         self._genres.grid(**self._config_params["Genres"]["Placement"])
 
-    def _open_player(self, e=None) -> None:
+    def _open_player(self, event=None) -> None:
         self._player = Player(
             self._parent,
             self._config_params["Player"],
             self._metadata.full_path,
-            self._metadata.sub_path,
-            self._metadata.get_length_sec(),
+            self._metadata.full_sub_path,
+            self._metadata.get_length_sec()
         )
         self._player.play()
 
-    def _on_enter_play_button(self, e=None) -> None:
-        self._play_button.configure(
-            background=self._config_params["PlayButton"]["Design"]["foreground"],
-            foreground=self._config_params["PlayButton"]["Design"]["background"],
-        )
+    def _on_hover_switch_colors(self, event=None) -> None:
+        self._colors_switch = not self._colors_switch
+        foreground = self._config_params["PlayButton"]["Design"]["foreground"]
+        background = self._config_params["PlayButton"]["Design"]["background"]
 
-    def _on_exit_play_button(self, e=None) -> None:
-        self._play_button.configure(
-            background=self._config_params["PlayButton"]["Design"]["background"],
-            foreground=self._config_params["PlayButton"]["Design"]["foreground"],
+        self.configure(
+            background=(foreground if self._colors_switch else background),
+            foreground=(background if self._colors_switch else foreground)
         )
 
 
 class LocalConnectorClick(ConnectorClickStrategy):
+    """The local connector click strategy class, that opens the local browser window."""
+
     def __init__(self, parent: tk.Widget, config_params: dict):
         self._parent = parent
         self._config_params = copy.deepcopy(config_params)
         self._window = None
 
     def execute(self) -> None:
-        if self._window == None:
+        if self._window is None:
             self._window = LocalMovieBrowserModal(self._parent, self._config_params)
         self._window.show()

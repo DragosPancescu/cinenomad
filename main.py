@@ -1,9 +1,9 @@
 import ctypes
 
+import platform
+
 from components import App
 from utils import set_proc_name
-
-import platform
 
 
 def main():

@@ -2,8 +2,9 @@ import subprocess
 import signal
 import os
 
+from typing import Optional
 
-def open_flatpak_chrome(url: str, profile: str, *args) -> subprocess.Popen:
+def open_flatpak_chrome(url: str, profile: str, *args) -> Optional[subprocess.Popen]:
     """Opens a URL in Google Chrome installed via Flatpak with optional arguments.
 
     Args:
@@ -30,7 +31,7 @@ def open_flatpak_chrome(url: str, profile: str, *args) -> subprocess.Popen:
 
     try:
         # Run the command and return the process
-        process = subprocess.Popen(command, preexec_fn=os.setpgrp)
+        process = subprocess.Popen(command, start_new_session=True)
         return process
     except FileNotFoundError:
         print("Flatpak is not installed, or Chrome is not installed via Flatpak.")

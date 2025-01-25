@@ -155,7 +155,7 @@ LocalMovieBrowserModal:
     Design:
       borderwidth: 0
       highlightthickness: 0
-      relief: sunken,
+      relief: sunken
       background: "#282828"
     Placement:
       side: left

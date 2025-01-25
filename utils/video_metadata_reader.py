@@ -1,10 +1,10 @@
 import os
 import re
-import yaml
 import copy
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Optional
 
 import cv2
 
@@ -12,6 +12,7 @@ from PIL import Image, ImageTk
 from pymediainfo import MediaInfo
 from langcodes import Language
 
+from utils.file_handling import load_yaml_file
 from .exceptions import FolderNotFoundException
 from .tmdb_utils import (
     search_movie_tmbd_api_call,
@@ -21,24 +22,35 @@ from .tmdb_utils import (
 )
 
 
-@dataclass
+@dataclass(frozen=True)
+class TmdbMovieMetadata:
+    """Class for storing data coming from TMDB."""
+
+    title: str
+    director: str
+    year: str
+    overview: str
+    genres: list[str]
+    poster_path: str
+
+
+@dataclass(frozen=True)
 class MovieMetadata:
     """Class for keeping track of a video metadata."""
 
     language: str
     length: str  # format -> "%H:%M:%S.%f"
-    director: str
     image: ImageTk
-    file_name: str
     full_path: str
-    sub_path: str
-    tmdb_title: str
-    tmdb_year: str
-    tmdb_overview: str
-    tmdb_genres: list[str]
-    tmdb_poster_path: str
+    full_sub_path: str
+    tmdb_data: TmdbMovieMetadata
 
     def get_length_sec(self) -> int:
+        """Methods that returns the movie movie length in seconds
+
+        Returns:
+            int: Number of seconds in the movie
+        """
         time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
         return int(
             time_obj.hour * 3600
@@ -48,18 +60,24 @@ class MovieMetadata:
         )
 
     def get_length_gui_format(self) -> str:
+        """Returns the datetime format that appears in the GUI
+
+        Returns:
+            str: Datetime in the following format: %H:%M:%S
+        """
         time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
         return time_obj.strftime("%H:%M:%S")
 
 
 class VideoMetadataListReader:
+    """Utility class for retrieving metadata from a multimedia file stored locally"""
+
     def __init__(self, folder_path: str) -> None:
         self._folder_path = folder_path
-        self._config_path = "./settings/accepted_extension.yaml"
-        self._accepted_extensions = self._read_accepted_extensions()
+        self._accepted_extensions = load_yaml_file("./settings/accepted_extension.yaml")
         self._file_names = self._read_video_file_names()
-
         self._metadata_list = []
+
         for file_name in self._file_names:
             full_path = os.path.join(self._folder_path, file_name)
             sub_path = os.path.join(
@@ -78,7 +96,7 @@ class VideoMetadataListReader:
             )
 
             download_tmdb_poster(
-                tmdb_metadata["tmdb_poster_path"], poster_download_path
+                tmdb_metadata["poster_path"], poster_download_path
             )
 
             # If poster download successful use that, else take a screenshot
@@ -92,52 +110,56 @@ class VideoMetadataListReader:
                     os.path.join(self._folder_path, file_name)
                 )
 
+            # Language value priority is as follows:
+            #   1. language extracted from the local file metadata
+            #   2. language extracted from tmdb
+            if "language" in extracted_metadata.keys() and extracted_metadata["language"] != "":
+                language = Language.get(extracted_metadata["language"]).display_name()
+            elif tmdb_metadata["original_language"] != "":
+                language = Language.get(tmdb_metadata["original_language"]).display_name()
+            else:
+                language = "N/A"
+
             # Add metadata to list
             self._metadata_list.append(
                 MovieMetadata(
-                    language=(
-                        Language.get(extracted_metadata["language"]).display_name()
-                        if "language" in extracted_metadata.keys()
-                        and extracted_metadata["language"] != ""
-                        else (
-                            Language.get(
-                                tmdb_metadata["tmdb_original_language"]
-                            ).display_name()
-                            if tmdb_metadata["tmdb_original_language"] != ""
-                            else "N/A"
-                        )
-                    ),
+                    language=language,
                     length=extracted_metadata["other_duration"][3],
-                    director=tmdb_metadata["director"],
                     image=poster_image,
-                    file_name=file_name,
                     full_path=full_path,
-                    sub_path=sub_path,
-                    tmdb_title=tmdb_metadata["tmdb_title"],
-                    tmdb_year=tmdb_metadata["tmdb_year"],
-                    tmdb_overview=tmdb_metadata["tmdb_overview"],
-                    tmdb_genres=tmdb_metadata["tmdb_genres"],
-                    tmdb_poster_path=tmdb_metadata["tmdb_poster_path"],
+                    full_sub_path=sub_path,
+                    tmdb_data=TmdbMovieMetadata(
+                        title=tmdb_metadata["title"],
+                        director=tmdb_metadata["director"],
+                        year=tmdb_metadata["year"],
+                        overview=tmdb_metadata["overview"],
+                        genres=tmdb_metadata["genres"],
+                        poster_path=tmdb_metadata["poster_path"]
+                    )
                 )
             )
 
-        self._metadata_list = sorted(self._metadata_list, key=lambda md: md.tmdb_title)
+        self._metadata_list = sorted(self._metadata_list, key=lambda md: md.tmdb_data.title)
 
     def _read_video_file_names(self) -> list:
-        if not os.path.isdir(self._folder_path):
-            raise FolderNotFoundException(self._folder_path)
-
         file_names = []
-        for file in os.listdir(self._folder_path):
-            if os.path.isfile(os.path.join(self._folder_path, file)):
-                file_names.append(file)
+        try:
+            for file in os.listdir(self._folder_path):
+                if os.path.isfile(os.path.join(self._folder_path, file)):
+                    file_names.append(file)
 
-        # Filter using the accepted extensions list
-        file_names = [
-            file_name
-            for file_name in file_names
-            if file_name.split(".")[-1].lower() in self._accepted_extensions
-        ]
+            # Filter using the accepted extensions list
+            file_names = [
+                file_name
+                for file_name in file_names
+                if file_name.split(".")[-1].lower() in self._accepted_extensions
+            ]
+        except FolderNotFoundException as exception:
+            print(f"Folder path: {self._folder_path} not found: {exception}")
+        except Exception as exception:
+            print(
+                f"Unexpected exception caught while retrieved file names from folder: {self._folder_path}, exception: {exception}"
+            )
         return file_names
 
     def _get_tmdb_movie_metadata(self, file_name: str) -> dict:
@@ -161,8 +183,8 @@ class VideoMetadataListReader:
 
         # API CALL for Director name
         director = ""
-        if metadata["tmdb_id"] != "":
-            director = search_crew_tmdb_api_call(metadata["tmdb_id"], is_tvshow)
+        if metadata["id"] != "":
+            director = search_crew_tmdb_api_call(metadata["id"], is_tvshow)
 
         metadata["director"] = director
         return metadata
@@ -195,9 +217,8 @@ class VideoMetadataListReader:
 
         return metadata
 
-    # TODO: Find a way to get nice screenshots
-    # TODO: Get metadata frame for screenshot
-    def _get_video_file_screenshot(self, video_file_path: str) -> ImageTk:
+    # TODO: Find a way to get nice screenshots (Get metadata frame for screenshot)
+    def _get_video_file_screenshot(self, video_file_path: str) -> Optional[ImageTk.PhotoImage]:
         """Uses OpenCV to get local video file sneek peak screenshot for the UI:
 
         Args:
@@ -230,12 +251,11 @@ class VideoMetadataListReader:
         frame_pil = Image.fromarray(frame).resize((200, 300), Image.Resampling.LANCZOS)
         return ImageTk.PhotoImage(image=frame_pil)
 
-    def get_metadata_list(self) -> list[MovieMetadata]:
-        return self._metadata_list
+    @property
+    def metadata_list(self) -> list[MovieMetadata]:
+        """Gets the list of media metadata
 
-    def _read_accepted_extensions(self) -> list:
-        with open(self._config_path) as conf_f:
-            try:
-                return yaml.safe_load(conf_f)
-            except yaml.YAMLError as err:
-                return err
+        Returns:
+            list[MovieMetadata]: List of metadata structures
+        """
+        return copy.copy(self._metadata_list)

@@ -1,5 +1,5 @@
 ---
-- "-kiosk"
+- "--kiosk"
 - "--new-window"
 - "--hide-scrollbars"
 - "--force-device-scale-factor"

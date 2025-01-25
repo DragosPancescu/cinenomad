@@ -1,7 +1,7 @@
+import json
 from typing import Optional, Union
 
 from PIL import Image, ImageTk, UnidentifiedImageError
-import json
 import yaml
 
 
@@ -16,11 +16,10 @@ def read_tk_image(image_path: str) -> Optional[ImageTk.PhotoImage]:
     """
     try:
         with Image.open(image_path) as img:
-            pill_img = img.load()
-        pill_img = pill_img.convert("RGBA")
+            pill_img = img.convert("RGBA")
 
         return ImageTk.PhotoImage(pill_img)
-    except UnidentifiedImageError as exception:  # TODO: Logger
+    except UnidentifiedImageError as exception:
         print(f"Error while trying to open image ({image_path}) using PIL: {exception}")
     except Exception as exception:
         print(f"An unexpected error occurred on image ({image_path}): {exception}")
@@ -37,9 +36,9 @@ def load_json_file(json_file_path: str) -> Optional[Union[dict, list]]:
         Optional[dict]: Dictionary or List structure of the json
     """
     try:
-        with open(json_file_path) as json_f:
+        with open(json_file_path, encoding="utf_8") as json_f:
             return json.load(json_f)
-    except FileNotFoundError:    # TODO: Logger
+    except FileNotFoundError:
         print(f"Error: The file '{json_file_path}' was not found.")
     except PermissionError:
         print(f"Error: Permission denied to read the file '{json_file_path}'.")
@@ -50,19 +49,19 @@ def load_json_file(json_file_path: str) -> Optional[Union[dict, list]]:
     return None
 
 
-def load_yaml_file(yaml_file_path: str) -> Optional[dict]:
-    """Given a path reads and loads a yaml file into a dictionary
+def load_yaml_file(yaml_file_path: str) -> Optional[Union[dict, list]]:
+    """Given a path reads and loads a yaml file into a dictionary or a list
 
     Args:
         json_file_path (str): Path to the yaml file
 
     Returns:
-        Optional[dict]: Dictionary structure of the yaml
+        Optional[dict]: Dictionary or List structure of the yaml
     """
     try:
-        with open(yaml_file_path) as yaml_f:
+        with open(yaml_file_path, encoding="utf_8") as yaml_f:
             return yaml.safe_load(yaml_f)
-    except FileNotFoundError:    # TODO: Logger
+    except FileNotFoundError:
         print(f"Error: The file '{yaml_file_path}' was not found.")
     except PermissionError:
         print(f"Error: Permission denied to read the file '{yaml_file_path}'.")

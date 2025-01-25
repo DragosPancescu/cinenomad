@@ -18,15 +18,10 @@ class AddMovieSourceButton(tk.Button):
 
     def _on_hover_switch_colors(self, event=None) -> None:
         self._colors_switch = not self._colors_switch
+        foreground = self._config_params["foreground"]
+        background = self._config_params["background"]
+
         self.configure(
-            background=(
-                self._config_params["foreground"]
-                if self._colors_switch
-                else self._config_params["background"]
-            ),
-            foreground=(
-                self._config_params["background"]
-                if self._colors_switch
-                else self._config_params["foreground"]
-            ),
+            background=(foreground if self._colors_switch else background),
+            foreground=(background if self._colors_switch else foreground),
         )
