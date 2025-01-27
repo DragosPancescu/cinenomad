@@ -1,8 +1,8 @@
 import copy
 import tkinter as tk
 
-from .strategy import ConnectorClickStrategy
 from utils.file_handling import read_tk_image
+from .strategy import ConnectorClickStrategy
 
 
 class ConnectorIcon(tk.Button):
@@ -12,7 +12,7 @@ class ConnectorIcon(tk.Button):
 
         # Get ImageTk object
         connector_image = read_tk_image(image_path)
-        if connector_image != None:  # TODO: In this case make the button invisible
+        if connector_image is not None:  # TODO: In this case make the button invisible
             self._config_params["image"] = connector_image
             
             # Keep reference so the image is rendered
@@ -25,7 +25,7 @@ class ConnectorIcon(tk.Button):
         self._strategy = strategy
 
         self.configure(
-            command=self._on_click, 
+            command=self._on_click,
             **self._config_params
         )
 

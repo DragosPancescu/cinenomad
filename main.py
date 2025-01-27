@@ -9,9 +9,9 @@ from utils import set_proc_name
 def main():
     # Change process name
     if platform.system() == "Linux":
-        set_proc_name("media-app-alpha")
+        set_proc_name("cinenomad-alpha")
 
-    # Ensure Xlib is thread-safe
+    # Ensure Xlib is thread-safeZ                   
     ctypes.CDLL("libX11.so").XInitThreads()
 
     config_path = "settings/components_config.yaml"
@@ -24,3 +24,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
