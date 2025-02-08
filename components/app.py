@@ -1,3 +1,4 @@
+import subprocess
 import tkinter as tk
 from typing import Optional
 
@@ -83,7 +84,7 @@ class App(tk.Tk):
 
         # Version tag
         self.version_tag = tk.Label(
-            self, text="v0.0.0-alpha", **self._configs["VersionTag"]["Design"]
+            self, text="v0.0.1-alpha", **self._configs["VersionTag"]["Design"]
         )
         self.version_tag.place(**self._configs["VersionTag"]["Placement"])
 
@@ -133,3 +134,4 @@ class App(tk.Tk):
         print("App closed")
         self.quit()
         self.destroy()
+        subprocess.run(["sudo", "/sbin/shutdown", "-h", "now"], check=False)

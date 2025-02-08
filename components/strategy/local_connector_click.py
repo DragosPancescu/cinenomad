@@ -8,7 +8,7 @@ from . import ConnectorClickStrategy
 from ..vlc_player import Player
 
 # TODO: This will be configurable on first use or after in the settings menu.
-FOLDER_PATH = r"/home/dragos/Downloads/input"
+FOLDER_PATH = r"/home/shared/Local Movies"
 
 
 class LocalMovieBrowserModal(tk.Toplevel):
@@ -57,6 +57,9 @@ class LocalMovieBrowserModal(tk.Toplevel):
             # Bind mouse wheel scrolling
             self.bind_all("<Button-4>", self._on_mousewheel)
             self.bind_all("<Button-5>", self._on_mousewheel)
+
+        # Bindings
+        self.bind("<Escape>", self.hide)
 
         # Init player manager
         row, col = 1, 1
@@ -194,13 +197,14 @@ class LocalMovieCard(tk.Frame):
             self._metadata.get_length_sec()
         )
         self._player.play()
+        self._player.setup_subtitles()
 
     def _on_hover_switch_colors(self, event=None) -> None:
         self._colors_switch = not self._colors_switch
         foreground = self._config_params["PlayButton"]["Design"]["foreground"]
         background = self._config_params["PlayButton"]["Design"]["background"]
 
-        self.configure(
+        self._play_button.configure(
             background=(foreground if self._colors_switch else background),
             foreground=(background if self._colors_switch else foreground)
         )

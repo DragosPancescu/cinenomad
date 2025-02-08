@@ -1,4 +1,5 @@
 import os
+import time
 import copy
 import math
 import tkinter as tk
@@ -162,6 +163,29 @@ class Player(tk.Toplevel):
         else:
             self.play()
 
+    def setup_subtitles(self) -> None:
+        def extract_eng_subtitles(player):
+            subtitles = player.video_get_spu_description()
+
+            eng_sub = [sub for sub in subtitles if "english" in str(sub[1]).lower()]
+            if len(eng_sub) > 0:
+                return eng_sub[0][0]
+            return -1
+        
+        # Try to add subs
+        if os.path.exists(self._sub_path):
+            self._player.add_slave(
+                vlc.MediaSlaveType.subtitle, self._sub_path, True
+            )
+        else:
+            print(
+                f"Could not find path to subtitle file: {self._sub_path}, trying to find subtitles embedded in the file."
+            )
+            if self._player.video_get_spu_count() > 0:
+                eng_sub_index = extract_eng_subtitles(self._player)
+                print(f"Setting up subtitle with index: {eng_sub_index}")
+                self._player.video_set_spu(eng_sub_index)
+
     def play(self) -> None:
         """Start playback."""
         print("Starting playback...")
@@ -170,6 +194,7 @@ class Player(tk.Toplevel):
         print(f"Player state after play: {state}")
         if state != vlc.State.Playing:
             print("Error: Playback did not start.")
+        time.sleep(1)
 
     def stop(self) -> None:
         """Pause playback."""
@@ -190,7 +215,6 @@ class Player(tk.Toplevel):
         self._parent.focus()  # Shift focus back to the parent
         self._menu.destroy()
         self.destroy()
-
 
     def go_forward(self, event=None) -> None:
         """Go forward 5 sec"""
@@ -213,20 +237,6 @@ class Player(tk.Toplevel):
         self.config(cursor="")
         self._menu.deiconify()
         self._controls_hidden = False
-    
-    def _setup_subtitles(self) -> None:
-        # Try to add subs
-        if os.path.exists(self._sub_path):
-            self._sub = self._player.add_slave(
-                vlc.MediaSlaveType.subtitle, self._sub_path, True
-            )
-        else:
-            print(
-                f"Could not find path to subtitle file: {self._sub_path}, trying to find subtitles embedded in the file."
-            )
-            if self._player.video_get_spu_count() > 0:
-                # TODO: Helper function to extract english sub for now
-                self._player.video_set_spu(1)
 
 
 class PlayerMenu(tk.Toplevel):
@@ -411,3 +421,9 @@ class PlayerMenu(tk.Toplevel):
 
     def _stop_drag(self, event=None) -> None:
         self.is_dragging = False
+
+
+class SubtitleMenu(tk.Menu):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._parent = parent
