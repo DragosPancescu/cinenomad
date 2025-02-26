@@ -1,3 +1,4 @@
+import re
 import copy
 import tkinter as tk
 
@@ -52,11 +53,14 @@ class LocalMovieBrowserModal(tk.Toplevel):
         metadata_reader = VideoMetadataListReader(FOLDER_PATH)
         self._metadata = metadata_reader.metadata_list
 
-        if len(self._metadata) > 12:
+        # TODO: CHECK LENGTH DYNAMICALLY
+        if len(self._metadata) > 3:
             self._frame.bind("<Configure>", self._on_frame_configure)
-            # Bind mouse wheel scrolling
+            # Bind mouse wheel and up / down keys for scrolling
             self.bind_all("<Button-4>", self._on_mousewheel)
             self.bind_all("<Button-5>", self._on_mousewheel)
+            self.bind_all("<Up>", self._on_mousewheel)
+            self.bind_all("<Down>", self._on_mousewheel)
 
         # Bindings
         self.bind("<Escape>", self.hide)
@@ -68,7 +72,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
                 self._frame, self._config_params["LocalMovieCard"], metadata
             )
             # Position on the grid
-            if idx > 0 and idx % 4 == 0:
+            if idx > 0 and idx % 2 == 0:
                 row += 1
                 col = 1
             col += 1
@@ -97,9 +101,9 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
     def _on_mousewheel(self, event) -> None:
         """Scroll the canvas using the mouse wheel"""
-        if event.num == 4:  # Scroll up
+        if event.num == 4 or event.keysym == "Up":  # Scroll up
             self._canvas.yview_scroll(-1, "units")
-        elif event.num == 5:  # Scroll down
+        elif event.num == 5 or event.keysym == "Down":  # Scroll down
             self._canvas.yview_scroll(1, "units")
 
 
@@ -131,9 +135,11 @@ class LocalMovieCard(tk.Frame):
             self, **self._config_params["RightSidePanel"]["Design"]
         )
 
+        season_episode = re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", metadata.full_path)
+        title_text = f"{metadata.tmdb_data.title} - {season_episode.group()}" if bool(season_episode) else f"{metadata.tmdb_data.title}"
         self._title = tk.Label(
             self._right_side_panel,
-            text=f"{metadata.tmdb_data.title}",
+            text=title_text,
             **self._config_params["Title"]["Design"],
         )
 

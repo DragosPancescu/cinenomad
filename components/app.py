@@ -15,9 +15,6 @@ from .strategy import ConnectorClickStrategy, NetflixConnectorClick, LocalConnec
 from utils.file_handling import load_json_file, load_yaml_file
 from tk_alert import AlertGenerator
 
-import yaml
-import json
-
 
 class App(tk.Tk):
     """Main app class"""
@@ -27,15 +24,12 @@ class App(tk.Tk):
 
         ####### Configure #######
         self._configs = load_yaml_file(config_path)
-        if self._configs == None:
+        if self._configs is None:
             self.close()
             raise Exception("Cannot start application, encountered errors while loading the config file.")
 
         self.configure(**self._configs["App"])
         self.attributes("-fullscreen", True)
-
-        # Controls
-        self.bind("<Escape>", self.close)
 
         # Alert object
         self._alert_generator = AlertGenerator(self)

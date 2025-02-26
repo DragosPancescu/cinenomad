@@ -11,7 +11,7 @@ def main():
     if platform.system() == "Linux":
         set_proc_name("cinenomad-alpha")
 
-    # Ensure Xlib is thread-safe             
+    # Ensure Xlib is thread-safe          
     ctypes.CDLL("libX11.so").XInitThreads()
 
     config_path = "settings/components_config.yaml"

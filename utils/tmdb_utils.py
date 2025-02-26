@@ -1,5 +1,4 @@
 from typing import Optional
-import copy
 
 import json
 import requests
@@ -139,7 +138,7 @@ def get_tmdb_metadata(movie_data: dict, is_tvshow: bool) -> dict:
     return empty_output
 
 
-def get_tmdb_configuration() -> Optional[requests.Response]:
+def get_tmdb_configuration() -> Optional[(dict | list)]:
     """Sends an API call to retrieve tmdb configuration
 
     Returns:
@@ -156,7 +155,7 @@ def get_tmdb_configuration() -> Optional[requests.Response]:
             print(response.text)
             return None
 
-        return response
+        return response.json()
     except Exception as exception:
         print(
             f"Encountered unexpected exception while trying to retrieve tmdb configuration. Exception: {exception}"
@@ -164,7 +163,7 @@ def get_tmdb_configuration() -> Optional[requests.Response]:
     return None
 
 
-def download_tmdb_poster(poster_path: str, download_location: str) -> None:
+def download_tmdb_poster(poster_path: str, download_location: str, tmdb_configuration: (dict | list)) -> None:
     """Downloads a poster image from TMDB given the poster path
 
     Args:
@@ -172,13 +171,11 @@ def download_tmdb_poster(poster_path: str, download_location: str) -> None:
         download_location (str): Where to download said poster image
     """
     try:
-        # Get TMDB configuration
-        tmdb_configuration = get_tmdb_configuration()
         if tmdb_configuration is None:
             return
 
         # Get correct poster size
-        poster_sizes = tmdb_configuration.json()["images"]["poster_sizes"]
+        poster_sizes = tmdb_configuration["images"]["poster_sizes"]
         size = poster_sizes[-2]  # Choose the second largest available size
 
         # Build the image URL

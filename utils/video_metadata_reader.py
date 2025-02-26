@@ -19,6 +19,7 @@ from .tmdb_utils import (
     get_tmdb_metadata,
     download_tmdb_poster,
     search_crew_tmdb_api_call,
+    get_tmdb_configuration
 )
 
 
@@ -77,7 +78,7 @@ class VideoMetadataListReader:
         self._accepted_extensions = load_yaml_file("./settings/accepted_extension.yaml")
         self._file_names = self._read_video_file_names()
         self._metadata_list = []
-
+        self._tmdb_configuration = get_tmdb_configuration()
         for file_name in self._file_names:
             full_path = os.path.join(self._folder_path, file_name)
             sub_path = os.path.join(
@@ -95,9 +96,12 @@ class VideoMetadataListReader:
                 os.path.splitext(os.path.basename(full_path))[0] + ".jpg",
             )
 
-            download_tmdb_poster(
-                tmdb_metadata["poster_path"], poster_download_path
-            )
+            if not os.path.exists(poster_download_path):
+                download_tmdb_poster(
+                    tmdb_metadata["poster_path"],
+                    poster_download_path,
+                    self._tmdb_configuration
+                )
 
             # If poster download successful use that, else take a screenshot
             if os.path.exists(poster_download_path):
