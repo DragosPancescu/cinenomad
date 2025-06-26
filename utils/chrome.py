@@ -16,7 +16,7 @@ def open_flatpak_chrome(url: str, profile: str, *args) -> Optional[subprocess.Po
     """
 
     # Base command
-    command = ["flatpak", "run", "com.google.Chrome"]
+    command = ["google-chrome-stable"]
 
     # Add any additional arguments
     if args:

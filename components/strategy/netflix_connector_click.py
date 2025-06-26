@@ -27,7 +27,7 @@ class NetflixBrowserModal(tk.Toplevel):
         self.bind("<Escape>", self.close)
 
         self._args = load_yaml_file("./settings/chrome_process_config.yaml")
-        self._profile = "Profile 1"
+        self._profile = "Default"
         self._process = None
     
 

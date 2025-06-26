@@ -135,11 +135,9 @@ class LocalMovieCard(tk.Frame):
             self, **self._config_params["RightSidePanel"]["Design"]
         )
 
-        season_episode = re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", metadata.full_path)
-        title_text = f"{metadata.tmdb_data.title} - {season_episode.group()}" if bool(season_episode) else f"{metadata.tmdb_data.title}"
         self._title = tk.Label(
             self._right_side_panel,
-            text=title_text,
+            text=metadata.tmdb_data.title,
             **self._config_params["Title"]["Design"],
         )
 

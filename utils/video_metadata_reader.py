@@ -79,6 +79,7 @@ class VideoMetadataListReader:
         self._file_names = self._read_video_file_names()
         self._metadata_list = []
         self._tmdb_configuration = get_tmdb_configuration()
+
         for file_name in self._file_names:
             full_path = os.path.join(self._folder_path, file_name)
             sub_path = os.path.join(
@@ -167,6 +168,14 @@ class VideoMetadataListReader:
         return file_names
 
     def _get_tmdb_movie_metadata(self, file_name: str) -> dict:
+        """Preprocessing and API call to TMDB to retrieve data about the movie / show
+
+        Args:
+            file_name (str): Original local media file name
+
+        Returns:
+            dict: Extracted data from TMDB
+        """
 
         # Extract movie name from file_name
         movie_name = re.sub("[^a-zA-Z]", " ", file_name)
@@ -177,20 +186,25 @@ class VideoMetadataListReader:
         if len(movie_name.split()[-1]) <= 2:
             movie_name = " ".join(movie_name.split()[0:-1])
 
-        is_tvshow = bool(re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", file_name))
+        season_episode = re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", file_name)
+        is_tvshow = bool(season_episode)
 
-        # API CALL
+        # API Call to  get info about movie / show
         movie_data = search_movie_tmbd_api_call(movie_name, is_tvshow)
 
         # Return dict with needed data
         metadata = get_tmdb_metadata(movie_data, is_tvshow)
 
-        # API CALL for Director name
+        # API Call for Director name
         director = ""
         if metadata["id"] != "":
             director = search_crew_tmdb_api_call(metadata["id"], is_tvshow)
 
         metadata["director"] = director
+
+        if is_tvshow:
+            metadata["title"] = f'{metadata["title"]} - {season_episode.group()}'
+
         return metadata
 
     # TODO: Get needed metadata

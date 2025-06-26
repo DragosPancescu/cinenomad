@@ -1,8 +1,8 @@
 ---
 VlcInstanceOptions:
   - "--freetype-font=Swis721 Cn BT:style=Roman"
-  - "--freetype-rel-fontsize=22"
-  - "--freetype-outline-thickness=2"
+  - "--freetype-rel-fontsize=16"
+  - "--freetype-outline-thickness=3"
   - "--freetype-shadow-opacity=128"
   - "--freetype-shadow-distance=0.1"
   - "--subsdec-autodetect-utf8"
