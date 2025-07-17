@@ -2,6 +2,8 @@ import subprocess
 import tkinter as tk
 from typing import Optional
 
+from tk_alert import AlertGenerator
+
 from components import (
     AppControlButton,
     AddMovieSourceButton,
@@ -10,16 +12,21 @@ from components import (
     ConnectorsFrame,
     AddMovieSourceModal,
 )
+from utils.file_handling import load_yaml_file
+from utils.database import queries
 
-from .strategy import ConnectorClickStrategy, NetflixConnectorClick, LocalConnectorClick
-from utils.file_handling import load_json_file, load_yaml_file
-from tk_alert import AlertGenerator
+from .strategy import (
+    ConnectorClickStrategy,
+    NetflixConnectorClick,
+    LocalConnectorClick,
+    YoutubeConnectorClick
+)
 
 
 class App(tk.Tk):
     """Main app class"""
 
-    def __init__(self, config_path: str, connector_data_path: str):
+    def __init__(self, config_path: str):
         super().__init__()
 
         ####### Configure #######
@@ -59,9 +66,8 @@ class App(tk.Tk):
         self.new_connector_button.configure(command=self.show_add_new_connector_modal)
 
         # Connectors
-        self._connector_data = load_json_file(connector_data_path)
-
-        if self._connector_data != None and len(self._connector_data) != 0:
+        self._connector_data = queries.get_connectors()
+        if self._connector_data is not None and len(self._connector_data) != 0:
             self.connectors_frame = ConnectorsFrame(
                 self,
                 self._configs["ConnectorsFrame"]["Design"],
@@ -74,7 +80,7 @@ class App(tk.Tk):
         self.new_connector_modal = AddMovieSourceModal(
             self, self._configs["AddMovieSourceModal"]
         )
-        self.new_connector_modal.withdraw()  # Keep it hidden
+        self.new_connector_modal.withdraw() # Keep it hidden
 
         # Version tag
         self.version_tag = tk.Label(
@@ -92,10 +98,10 @@ class App(tk.Tk):
             connector_button = ConnectorIcon(
                 self.connectors_frame,
                 self._configs["ConnectorIcon"]["Design"],
-                connector["image_path"],
-                connector["text"],
+                connector.icon_path,
+                connector.name,
                 self._get_strategy_for_connector(  # Inject click strategy
-                    connector["text"]
+                    connector.name
                 ),
             )
             connector_button.grid(
@@ -105,7 +111,7 @@ class App(tk.Tk):
             connector_label = ConnectorLabel(
                 self.connectors_frame,
                 self._configs["ConnectorLabel"]["Design"],
-                connector["text"],
+                connector.name,
             )
             connector_label.grid(
                 column=idx, **self._configs["ConnectorLabel"]["Placement"]
@@ -116,6 +122,8 @@ class App(tk.Tk):
             return NetflixConnectorClick(self, self._configs["NetflixBrowserModal"])
         if name == "Local":
             return LocalConnectorClick(self, self._configs["LocalMovieBrowserModal"])
+        if name == "Youtube":
+            return YoutubeConnectorClick(self, self._configs["NetflixBrowserModal"])
         return None
 
     def close(self, event=None) -> None:

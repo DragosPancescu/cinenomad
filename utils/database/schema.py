@@ -27,5 +27,14 @@ def create_tables() -> None:
                 );
                 """
             )
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS connector (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    icon_path TEXT NOT NULL
+                );
+                """
+            )
     except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
         raise RuntimeError(f"Could not create table 'movie_metadata': {e}") from e

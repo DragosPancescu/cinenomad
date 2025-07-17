@@ -1,5 +1,5 @@
 from .connection import AppDatabase
-from .models import VideoMetadata
+from .models import VideoMetadata, Connector
 
 
 def insert_video(metadata: VideoMetadata) -> None:
@@ -133,3 +133,35 @@ def delete_video_by_path(path: str) -> None:
         """,
         path,
     )
+
+def get_connectors() -> list[Connector] | None:
+    """Retrieves all available connectors
+
+    Returns:
+        list[Connector]: List of Connector objects
+    """    
+    conn = AppDatabase.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM connector
+        ORDER BY id;
+        """
+    )
+
+    rows = cursor.fetchall()
+    if rows is None:
+        print("Could not find any connectors")
+        return None
+    
+    connectors = []
+    for row in rows:
+        connectors.append(
+            Connector(
+                name=row[1],
+                icon_path=row[2]
+            )
+        )
+    return connectors

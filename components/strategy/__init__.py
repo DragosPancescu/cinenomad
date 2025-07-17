@@ -1,3 +1,4 @@
 from .connector_click_strategy import ConnectorClickStrategy
 from .local_connector_click import LocalConnectorClick
 from .netflix_connector_click import NetflixConnectorClick
+from .youtube_connector_click import YoutubeConnectorClick

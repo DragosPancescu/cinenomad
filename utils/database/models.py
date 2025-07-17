@@ -72,3 +72,11 @@ class VideoMetadata:
             )
             return ImageTk.PhotoImage(image)
         return None
+
+
+@dataclass()
+class Connector:
+    """Model class for keeping connector data"""
+
+    name: str
+    icon_path: str

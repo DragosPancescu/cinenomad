@@ -1,4 +1,3 @@
-import re
 import copy
 import tkinter as tk
 

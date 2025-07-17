@@ -5,7 +5,7 @@ import os
 from typing import Optional
 
 def open_flatpak_chrome(url: str, profile: str, *args) -> Optional[subprocess.Popen]:
-    """Opens a URL in Google Chrome installed via Flatpak with optional arguments.
+    """Opens a URL in Google Chrome with optional arguments.
 
     Args:
         url (str): The URL to open.
