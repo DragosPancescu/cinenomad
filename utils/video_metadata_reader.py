@@ -2,149 +2,36 @@ import os
 import re
 import copy
 
-from dataclasses import dataclass
-from datetime import datetime
 from typing import Optional
 
 import cv2
+import numpy as np
 
-from PIL import Image, ImageTk
+from PIL import Image
 from pymediainfo import MediaInfo
 from langcodes import Language
 
 from utils.file_handling import load_yaml_file
+from utils.database import queries, models
 from .exceptions import FolderNotFoundException
 from .tmdb_utils import (
     search_movie_tmbd_api_call,
     get_tmdb_metadata,
     download_tmdb_poster,
     search_crew_tmdb_api_call,
-    get_tmdb_configuration
+    get_tmdb_configuration,
 )
 
 
-@dataclass(frozen=True)
-class TmdbMovieMetadata:
-    """Class for storing data coming from TMDB."""
 
-    title: str
-    director: str
-    year: str
-    overview: str
-    genres: list[str]
-    poster_path: str
-
-
-@dataclass(frozen=True)
-class MovieMetadata:
-    """Class for keeping track of a video metadata."""
-
-    language: str
-    length: str  # format -> "%H:%M:%S.%f"
-    image: ImageTk
-    full_path: str
-    full_sub_path: str
-    tmdb_data: TmdbMovieMetadata
-
-    def get_length_sec(self) -> int:
-        """Methods that returns the movie movie length in seconds
-
-        Returns:
-            int: Number of seconds in the movie
-        """
-        time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
-        return int(
-            time_obj.hour * 3600
-            + time_obj.minute * 60
-            + time_obj.second
-            + time_obj.microsecond / 1_000_000
-        )
-
-    def get_length_gui_format(self) -> str:
-        """Returns the datetime format that appears in the GUI
-
-        Returns:
-            str: Datetime in the following format: %H:%M:%S
-        """
-        time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
-        return time_obj.strftime("%H:%M:%S")
-
-
-class VideoMetadataListReader:
-    """Utility class for retrieving metadata from a multimedia file stored locally"""
+class VideoMetadataReader:
+    """Utility class for retrieving metadata from a multimedia file stored locally and storing the info in the database"""
 
     def __init__(self, folder_path: str) -> None:
         self._folder_path = folder_path
         self._accepted_extensions = load_yaml_file("./settings/accepted_extension.yaml")
         self._file_names = self._read_video_file_names()
-        self._metadata_list = []
         self._tmdb_configuration = get_tmdb_configuration()
-
-        for file_name in self._file_names:
-            full_path = os.path.join(self._folder_path, file_name)
-            sub_path = os.path.join(
-                self._folder_path,
-                f"{os.path.splitext(os.path.basename(file_name))[0]}.srt",
-            )
-
-            # Get data
-            extracted_metadata = self._get_video_file_metadata(full_path)
-            tmdb_metadata = self._get_tmdb_movie_metadata(file_name)
-
-            # Download poster from TMDB
-            poster_download_path = os.path.join(
-                "resources/movie_posters",
-                os.path.splitext(os.path.basename(full_path))[0] + ".jpg",
-            )
-
-            if not os.path.exists(poster_download_path):
-                download_tmdb_poster(
-                    tmdb_metadata["poster_path"],
-                    poster_download_path,
-                    self._tmdb_configuration
-                )
-
-            # If poster download successful use that, else take a screenshot
-            if os.path.exists(poster_download_path):
-                image = Image.open(poster_download_path).resize(
-                    (200, 300), Image.Resampling.LANCZOS
-                )
-                poster_image = ImageTk.PhotoImage(image)
-            else:
-                poster_image = self._get_video_file_screenshot(
-                    os.path.join(self._folder_path, file_name)
-                )
-
-            # Language value priority is as follows:
-            #   1. language extracted from the local file metadata
-            #   2. language extracted from tmdb
-            if "language" in extracted_metadata.keys() and extracted_metadata["language"] != "":
-                language = Language.get(extracted_metadata["language"]).display_name()
-            elif tmdb_metadata["original_language"] != "":
-                language = Language.get(tmdb_metadata["original_language"]).display_name()
-            else:
-                language = "N/A"
-
-            # Add metadata to list
-            self._metadata_list.append(
-                MovieMetadata(
-                    language=language,
-                    length=extracted_metadata["other_duration"][3],
-                    image=poster_image,
-                    full_path=full_path,
-                    full_sub_path=sub_path,
-                    tmdb_data=TmdbMovieMetadata(
-                        title=tmdb_metadata["title"],
-                        director=tmdb_metadata["director"],
-                        year=tmdb_metadata["year"],
-                        overview=tmdb_metadata["overview"],
-                        genres=tmdb_metadata["genres"],
-                        poster_path=tmdb_metadata["poster_path"]
-                    )
-                )
-            )
-
-        self._metadata_list = sorted(self._metadata_list, key=lambda md: md.tmdb_data.title)
 
     def _read_video_file_names(self) -> list:
         file_names = []
@@ -207,7 +94,6 @@ class VideoMetadataListReader:
 
         return metadata
 
-    # TODO: Get needed metadata
     def _get_video_file_metadata(self, video_file_path: str) -> dict:
         """Uses MediaInfo wrapper to get local video file metadata:
 
@@ -236,14 +122,14 @@ class VideoMetadataListReader:
         return metadata
 
     # TODO: Find a way to get nice screenshots (Get metadata frame for screenshot)
-    def _get_video_file_screenshot(self, video_file_path: str) -> Optional[ImageTk.PhotoImage]:
+    def _get_video_file_screenshot(self, video_file_path: str) -> Optional[np.ndarray]:
         """Uses OpenCV to get local video file sneek peak screenshot for the UI:
 
         Args:
             video_file_path (str): Path to the video file to extract the screenshot from
 
         Returns:
-            ImageTk: Ready to be used in a widget
+            numpy.ndarray: Ready to be used in a widget
         """
         video = cv2.VideoCapture(video_file_path)
         if not video.isOpened():
@@ -266,14 +152,77 @@ class VideoMetadataListReader:
             return None
 
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_pil = Image.fromarray(frame).resize((200, 300), Image.Resampling.LANCZOS)
-        return ImageTk.PhotoImage(image=frame_pil)
+        return frame
 
-    @property
-    def metadata_list(self) -> list[MovieMetadata]:
-        """Gets the list of media metadata
+    def update_metadata_db(self) -> None:
+        # Remove metadata from the database that is not in the folder
+        db_metadata_list = queries.get_all_videos()
+        for db_metadata in db_metadata_list:
+            if not os.path.split(db_metadata.full_path)[-1] in self._file_names:
+                queries.delete_video_by_path(db_metadata.full_path)
 
-        Returns:
-            list[MovieMetadata]: List of metadata structures
-        """
-        return copy.copy(self._metadata_list)
+        for file_name in self._file_names:
+            full_path = os.path.join(self._folder_path, file_name)
+
+            # If video metadata already exists
+            if full_path in db_metadata_list:
+                continue
+
+            sub_path = os.path.join(
+                self._folder_path,
+                f"{os.path.splitext(os.path.basename(file_name))[0]}.srt",
+            )
+
+            # Get data
+            extracted_metadata = self._get_video_file_metadata(full_path)
+            tmdb_metadata = self._get_tmdb_movie_metadata(file_name)
+
+            # Language value priority is as follows:
+            #   1. language extracted from the local file metadata
+            #   2. language extracted from tmdb
+            if (
+                "language" in extracted_metadata.keys()
+                and extracted_metadata["language"] != ""
+            ):
+                language = Language.get(extracted_metadata["language"]).display_name()
+            elif tmdb_metadata["original_language"] != "":
+                language = Language.get(
+                    tmdb_metadata["original_language"]
+                ).display_name()
+            else:
+                language = "N/A"
+
+            # Download poster from TMDB
+            poster_download_path = os.path.join(
+                "resources/movie_posters",
+                os.path.splitext(os.path.basename(full_path))[0] + ".jpg",
+            )
+            download_tmdb_poster(
+                tmdb_metadata["poster_path"],
+                poster_download_path,
+                self._tmdb_configuration,
+            )
+
+            # If poster download did not work save a screenshot from the video instead
+            if not os.path.exists(poster_download_path):
+                poster_image = self._get_video_file_screenshot(
+                    os.path.join(self._folder_path, file_name)
+                )
+                if poster_image is not None:
+                    cv2.imwrite(poster_download_path, poster_image)
+
+            # Add metadata to the database
+            metadata = models.VideoMetadata(
+                language=language,
+                length=extracted_metadata["other_duration"][3],
+                image_path=poster_download_path,
+                full_path=full_path,
+                full_sub_path=sub_path,
+                tmdb_title=tmdb_metadata["title"],
+                tmdb_director=tmdb_metadata["director"],
+                tmdb_year=tmdb_metadata["year"],
+                tmdb_overview=tmdb_metadata["overview"],
+                tmdb_genres=tmdb_metadata["genres"],
+                tmdb_poster_path=tmdb_metadata["poster_path"],
+            )
+            queries.insert_video(metadata)

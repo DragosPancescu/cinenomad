@@ -1,24 +1,23 @@
 from .connection import AppDatabase
-from .models import MovieMetadata
+from .models import VideoMetadata
 
 
-def insert_movie(metadata: MovieMetadata) -> None:
-    """Inserts metadata about a movie
+def insert_video(metadata: VideoMetadata) -> None:
+    """Inserts metadata about a video
 
     Args:
-        metadata (MovieMetadata): Metadata object
-    """    
+        metadata (VideoMetadata): Metadata object
+    """
     conn = AppDatabase.get_connection()
-    cursor = conn.cursor()
 
-    cursor.execute(
+    conn.execute(
         """
-        INSERT INTO movie_metadata (
+        INSERT INTO video_metadata (
             language, length, image_path, full_path, full_sub_path,
             tmdb_title, tmdb_director, tmdb_year, tmdb_overview,
             tmdb_genres, tmdb_poster_path
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """,
+        """,
         (
             metadata.language,
             metadata.length,
@@ -33,6 +32,104 @@ def insert_movie(metadata: MovieMetadata) -> None:
             metadata.tmdb_poster_path,
         ),
     )
-
     conn.commit()
 
+
+def get_all_videos() -> list[VideoMetadata] | None:
+    """Retrieves all the video's metadatas from the database
+
+    Returns:
+        list[VideoMetadata]: List of VideoMetadata objects
+    """    
+    conn = AppDatabase.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM video_metadata
+        ORDER BY tmdb_title;
+        """
+    )
+
+    rows = cursor.fetchall()
+    if rows is None:
+        print("Could not find any videos")
+        return None
+    
+    all_videos_list = []
+    for row in rows:
+        all_videos_list.append(
+            VideoMetadata(
+                language=row[1],
+                length=row[2],
+                image_path=row[3],
+                full_path=row[4],
+                full_sub_path=row[5],
+                tmdb_title=row[6],
+                tmdb_director=row[7],
+                tmdb_year=row[8],
+                tmdb_overview=row[9],
+                tmdb_genres=list(row[10].split("|")),
+                tmdb_poster_path=row[11],
+            )
+        )
+    return all_videos_list
+
+
+def get_video_by_path(path: str) -> VideoMetadata | None:
+    """Retrieves a video's data given its full path
+
+    Args:
+        path (str): Full path to the video file
+
+    Returns:
+        VideoMetadata: Metadata object
+    """
+    conn = AppDatabase.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM video_metadata
+        WHERE full_path LIKE ?;
+        """,
+        path,
+    )
+
+    row = cursor.fetchone()
+    if row is None:
+        print("Could not find any video with path: {path}")
+        return None
+
+    return VideoMetadata(
+        language=row[1],
+        length=row[2],
+        image_path=row[3],
+        full_path=row[4],
+        full_sub_path=row[5],
+        tmdb_title=row[6],
+        tmdb_director=row[7],
+        tmdb_year=row[8],
+        tmdb_overview=row[9],
+        tmdb_genres=list(row[10].split("|")),
+        tmdb_poster_path=row[11],
+    )
+
+
+def delete_video_by_path(path: str) -> None:
+    """Deletes a video from video_metadata given its full path
+
+    Args:
+        path (str): Full path to the video file
+    """
+    conn = AppDatabase.get_connection()
+
+    conn.execute(
+        """
+        DELETE FROM video_metadata
+        WHERE full_path LIKE ?;
+        """,
+        path,
+    )

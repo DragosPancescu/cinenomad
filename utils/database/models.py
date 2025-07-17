@@ -1,9 +1,15 @@
+import re
+import os
+
+from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
 
+from PIL import Image, ImageTk
+
 
 @dataclass(frozen=True)
-class MovieMetadata:
+class VideoMetadata:
     """Class for keeping track of a video metadata."""
 
     language: str
@@ -19,10 +25,10 @@ class MovieMetadata:
     tmdb_poster_path: str
 
     def get_length_sec(self) -> int:
-        """Methods that returns the movie movie length in seconds
+        """Methods that returns the video length in seconds
 
         Returns:
-            int: Number of seconds in the movie
+            int: Number of seconds in the video
         """
         time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
         return int(
@@ -40,3 +46,29 @@ class MovieMetadata:
         """
         time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
         return time_obj.strftime("%H:%M:%S")
+
+    def get_gui_title(self) -> str:
+        """Returns the title string that appears in the GUI
+
+        Returns:
+            str: Title of the video
+        """
+        season_episode = re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", self.full_path)
+        is_tvshow = bool(season_episode)
+
+        if is_tvshow:
+            return f"{self.tmdb_title} - {season_episode.group()}"
+        return self.tmdb_title
+
+    def get_image_object(self) -> Optional[ImageTk.PhotoImage]:
+        """Retrieves the resized poster image ready to use in the GUI
+
+        Returns:
+            ImageTk.PhotoImage]: ImageTk image object easy to embbed in the GUI
+        """
+        if os.path.exists(self.image_path):
+            image = Image.open(self.image_path).resize(
+                (200, 300), Image.Resampling.LANCZOS
+            )
+            return ImageTk.PhotoImage(image)
+        return None

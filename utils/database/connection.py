@@ -2,6 +2,8 @@ import sqlite3
 import threading
 
 class AppDatabase:
+    """Singleton class that handles connections to the sqlite3 local db
+    """
     _conn = None
     _lock = threading.Lock()
 
@@ -18,6 +20,10 @@ class AppDatabase:
         """
         with cls._lock:
             if cls._conn is None:
-                print("No connection found, will create a new one")
-                cls._conn = sqlite3.connect(cls._path, check_same_thread=False)
+                try:
+                    cls._conn = sqlite3.connect(cls._path, check_same_thread=False)
+                except Exception as e:
+                    raise RuntimeError(f"Failed to connect to database: {e}") from e
+        if cls._conn is None:
+            raise RuntimeError("Database connection is None unexpectedly.")
         return cls._conn

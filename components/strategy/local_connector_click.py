@@ -3,7 +3,8 @@ import copy
 import tkinter as tk
 
 from components import AppControlButton
-from utils import VideoMetadataListReader, MovieMetadata
+from utils import VideoMetadataReader
+from utils.database import queries, models
 
 from . import ConnectorClickStrategy
 from ..vlc_player import Player
@@ -50,8 +51,9 @@ class LocalMovieBrowserModal(tk.Toplevel):
         )
 
         # Movie Buttons
-        metadata_reader = VideoMetadataListReader(FOLDER_PATH)
-        self._metadata = metadata_reader.metadata_list
+        metadata_reader = VideoMetadataReader(FOLDER_PATH)
+        metadata_reader.update_metadata_db()
+        self._metadata = queries.get_all_videos()
 
         # TODO: CHECK LENGTH DYNAMICALLY
         if len(self._metadata) > 3:
@@ -110,7 +112,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
 class LocalMovieCard(tk.Frame):
     """Card that hold meta information about the movie, poster / screenshot and the play button"""
 
-    def __init__(self, parent: tk.Widget, config_params: dict, metadata: MovieMetadata):
+    def __init__(self, parent: tk.Widget, config_params: dict, metadata: models.VideoMetadata):
         super().__init__(parent)
         self._parent = parent
         self._metadata = metadata
@@ -127,7 +129,7 @@ class LocalMovieCard(tk.Frame):
         # Widget components
         self._poster = tk.Label(
             self,
-            image=metadata.image,
+            image=metadata.get_image_object(),
             **self._config_params["Poster"]["Design"],
         )
 
@@ -137,13 +139,13 @@ class LocalMovieCard(tk.Frame):
 
         self._title = tk.Label(
             self._right_side_panel,
-            text=metadata.tmdb_data.title,
+            text=metadata.get_gui_title(),
             **self._config_params["Title"]["Design"],
         )
 
         self._year_director = tk.Label(
             self._right_side_panel,
-            text=f"{metadata.tmdb_data.year} | {metadata.tmdb_data.director}",
+            text=f"{metadata.tmdb_year} | {metadata.tmdb_director}",
             **self._config_params["Entry"]["Design"],
         )
 
@@ -169,13 +171,13 @@ class LocalMovieCard(tk.Frame):
 
         self._overview = tk.Label(
             self,
-            text=f"{metadata.tmdb_data.overview}",
+            text=f"{metadata.tmdb_overview}",
             **self._config_params["Overview"]["Design"],
         )
 
         self._genres = tk.Label(
             self,
-            text=f"{' | '.join(metadata.tmdb_data.genres)}",
+            text=f"{' | '.join(metadata.tmdb_genres)}",
             **self._config_params["Genres"]["Design"],
         )
 
