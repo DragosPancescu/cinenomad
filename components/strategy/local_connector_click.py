@@ -127,9 +127,10 @@ class LocalMovieCard(tk.Frame):
         )
 
         # Widget components
+        self._poster_image = metadata.get_image_object()
         self._poster = tk.Label(
             self,
-            image=metadata.get_image_object(),
+            image=self._poster_image,
             **self._config_params["Poster"]["Design"],
         )
 

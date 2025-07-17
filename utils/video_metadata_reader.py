@@ -7,7 +7,6 @@ from typing import Optional
 import cv2
 import numpy as np
 
-from PIL import Image
 from pymediainfo import MediaInfo
 from langcodes import Language
 
@@ -21,7 +20,6 @@ from .tmdb_utils import (
     search_crew_tmdb_api_call,
     get_tmdb_configuration,
 )
-
 
 
 class VideoMetadataReader:
@@ -89,9 +87,6 @@ class VideoMetadataReader:
 
         metadata["director"] = director
 
-        if is_tvshow:
-            metadata["title"] = f'{metadata["title"]} - {season_episode.group()}'
-
         return metadata
 
     def _get_video_file_metadata(self, video_file_path: str) -> dict:
@@ -154,18 +149,22 @@ class VideoMetadataReader:
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         return frame
 
+    # TODO: Calculate set() difference and iterate through that to get the lists
     def update_metadata_db(self) -> None:
-        # Remove metadata from the database that is not in the folder
         db_metadata_list = queries.get_all_videos()
-        for db_metadata in db_metadata_list:
-            if not os.path.split(db_metadata.full_path)[-1] in self._file_names:
-                queries.delete_video_by_path(db_metadata.full_path)
+        db_full_paths = [db_metadata.full_path for db_metadata in db_metadata_list]
+
+        # Remove metadata from the database that is not in the folder
+        for db_full_path in db_full_paths:
+            if not os.path.split(db_full_path)[-1] in self._file_names:
+                print(f"Deleted: {db_full_path} from database")
+                queries.delete_video_by_path(db_full_path)
 
         for file_name in self._file_names:
             full_path = os.path.join(self._folder_path, file_name)
 
             # If video metadata already exists
-            if full_path in db_metadata_list:
+            if full_path in db_full_paths:
                 continue
 
             sub_path = os.path.join(
