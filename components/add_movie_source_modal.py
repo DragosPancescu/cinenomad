@@ -20,27 +20,7 @@ class AddMovieSourceModal(tk.Toplevel):
         self.bind("<Escape>", self.close)
 
         # Widgets
-        # Add Button for making selection
-        AddButton = tk.Button(
-            self,
-            text=self._config_params["AddButton"]["text"],
-            command=lambda: self._handle_user_choice(
-                self._config_params["AddButton"]["text"]
-            ),
-            **self._config_params["AddButton"]["Design"],
-        )
-        AddButton.place(**self._config_params["AddButton"]["Placement"])
-
-        # Cancel Button
-        CancelButton = tk.Button(
-            self,
-            text=self._config_params["CancelButton"]["text"],
-            command=lambda: self._handle_user_choice(
-                self._config_params["CancelButton"]["text"]
-            ),
-            **self._config_params["CancelButton"]["Design"],
-        )
-        CancelButton.place(**self._config_params["CancelButton"]["Placement"])
+        self._init_widgets()
 
         # Change placement on screen
         self._center()
@@ -72,6 +52,27 @@ class AddMovieSourceModal(tk.Toplevel):
 
         # Position the toplevel window
         self.geometry(f"{toplevel_width}x{toplevel_height}+{x}+{y}")
+
+    def _init_widgets(self) -> None:
+        add_button = tk.Button(
+            self,
+            text=self._config_params["AddButton"]["text"],
+            command=lambda: self._handle_user_choice(
+                self._config_params["AddButton"]["text"]
+            ),
+            **self._config_params["AddButton"]["Design"],
+        )
+        add_button.place(**self._config_params["AddButton"]["Placement"])
+
+        cancel_button = tk.Button(
+            self,
+            text=self._config_params["CancelButton"]["text"],
+            command=lambda: self._handle_user_choice(
+                self._config_params["CancelButton"]["text"]
+            ),
+            **self._config_params["CancelButton"]["Design"],
+        )
+        cancel_button.place(**self._config_params["CancelButton"]["Placement"])
 
     def close(self, event=None) -> None:
         self.withdraw()
