@@ -1,11 +1,10 @@
 import json
-from typing import Optional, Union
 
 from PIL import Image, ImageTk, UnidentifiedImageError
 import yaml
 
 
-def read_tk_image(image_path: str) -> Optional[ImageTk.PhotoImage]:
+def read_tk_image(image_path: str) -> ImageTk.PhotoImage | None:
     """Given a path reads an image that can be used in any place that an image object is expected in Tkinter
 
     Args:
@@ -26,7 +25,7 @@ def read_tk_image(image_path: str) -> Optional[ImageTk.PhotoImage]:
     return None
 
 
-def load_json_file(json_file_path: str) -> Optional[Union[dict, list]]:
+def load_json_file(json_file_path: str) -> dict | list | None:
     """Given a path reads and loads a json file into a dictionary or a list
 
     Args:
@@ -49,7 +48,7 @@ def load_json_file(json_file_path: str) -> Optional[Union[dict, list]]:
     return None
 
 
-def load_yaml_file(yaml_file_path: str) -> Optional[Union[dict, list]]:
+def load_yaml_file(yaml_file_path: str) -> dict | list | None:
     """Given a path reads and loads a yaml file into a dictionary or a list
 
     Args:

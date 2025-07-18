@@ -1,6 +1,5 @@
 import subprocess
 import tkinter as tk
-from typing import Optional
 
 from tk_alert import AlertGenerator
 
@@ -117,7 +116,7 @@ class App(tk.Tk):
                 column=idx, **self._configs["ConnectorLabel"]["Placement"]
             )
 
-    def _get_strategy_for_connector(self, name: str) -> Optional[ConnectorClickStrategy]:
+    def _get_strategy_for_connector(self, name: str) -> ConnectorClickStrategy | None:
         if name == "Netflix":
             return NetflixConnectorClick(self, self._configs["NetflixBrowserModal"])
         if name == "Local":

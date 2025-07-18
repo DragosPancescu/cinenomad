@@ -1,5 +1,3 @@
-from typing import Optional
-
 import json
 import requests
 
@@ -17,7 +15,7 @@ HEADERS["Authorization"] = str(HEADERS["Authorization"]).replace(
 )
 
 
-def search_crew_tmdb_api_call(tmdb_id: str, is_tvshow: bool) -> Optional[str]:
+def search_crew_tmdb_api_call(tmdb_id: str, is_tvshow: bool) -> str | None:
     """Sends an API call to the movie or tv show endpoint to retrieve the director (or in the case of a tv show, the producer) name
 
     Args:
@@ -60,7 +58,7 @@ def search_crew_tmdb_api_call(tmdb_id: str, is_tvshow: bool) -> Optional[str]:
     return None
 
 
-def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> Optional[dict]:
+def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> dict[str, str] | None:
     """Sends an API call to the search endpoint to retrieve data about the movie or tv show
 
     Args:
@@ -138,7 +136,7 @@ def get_tmdb_metadata(movie_data: dict, is_tvshow: bool) -> dict:
     return empty_output
 
 
-def get_tmdb_configuration() -> Optional[(dict | list)]:
+def get_tmdb_configuration() -> dict | list | None:
     """Sends an API call to retrieve tmdb configuration
 
     Returns:
@@ -163,7 +161,7 @@ def get_tmdb_configuration() -> Optional[(dict | list)]:
     return None
 
 
-def download_tmdb_poster(poster_path: str, download_location: str, tmdb_configuration: (dict | list)) -> None:
+def download_tmdb_poster(poster_path: str, download_location: str, tmdb_configuration: dict | list) -> None:
     """Downloads a poster image from TMDB given the poster path
 
     Args:

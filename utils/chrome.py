@@ -2,17 +2,16 @@ import subprocess
 import signal
 import os
 
-from typing import Optional
 
-def open_flatpak_chrome(url: str, profile: str, *args) -> Optional[subprocess.Popen]:
+def open_flatpak_chrome(url: str, profile: str, *args) -> subprocess.Popen | None:
     """Opens a URL in Google Chrome with optional arguments.
 
     Args:
         url (str): The URL to open.
         profile (str): Chrome profile, either 'Default' or 'Profile 1', 'Profile 2', etc. for subsequent profiles.
         args: Chrome process accepted args
-     Returns:
-        subprocess.Popen: Chrome process spawned by this method
+    Returns:
+        Optional[subprocess.Popen]: Chrome process spawned by this method
     """
 
     # Base command

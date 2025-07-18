@@ -1,7 +1,6 @@
 import re
 import os
 
-from typing import Optional
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -10,7 +9,7 @@ from PIL import Image, ImageTk
 
 @dataclass(frozen=True)
 class VideoMetadata:
-    """Class for keeping track of a video metadata."""
+    """Model class for keeping track of a video metadata."""
 
     language: str
     length: str  # format -> "%H:%M:%S.%f"
@@ -60,11 +59,11 @@ class VideoMetadata:
             return f"{self.tmdb_title} - {season_episode.group()}"
         return self.tmdb_title
 
-    def get_image_object(self) -> Optional[ImageTk.PhotoImage]:
+    def get_image_object(self) -> ImageTk.PhotoImage | None:
         """Retrieves the resized poster image ready to use in the GUI
 
         Returns:
-            ImageTk.PhotoImage]: ImageTk image object easy to embbed in the GUI
+            Optional[ImageTk.PhotoImage]: ImageTk image object easy to embbed in the GUI
         """
         if os.path.exists(self.image_path):
             image = Image.open(self.image_path).resize(

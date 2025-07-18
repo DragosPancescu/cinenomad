@@ -2,8 +2,6 @@ import os
 import re
 import copy
 
-from typing import Optional
-
 import cv2
 import numpy as np
 
@@ -31,7 +29,12 @@ class VideoMetadataReader:
         self._file_names = self._read_video_file_names()
         self._tmdb_configuration = get_tmdb_configuration()
 
-    def _read_video_file_names(self) -> list:
+    def _read_video_file_names(self) -> list[str] | None:
+        """Retrieves all file names from 'self._folder_path' filtered by the 'self._accepted_extensions'
+
+        Returns:
+            list: List containing valid file names
+        """
         file_names = []
         try:
             for file in os.listdir(self._folder_path):
@@ -52,7 +55,7 @@ class VideoMetadataReader:
             )
         return file_names
 
-    def _get_tmdb_movie_metadata(self, file_name: str) -> dict:
+    def _get_tmdb_movie_metadata(self, file_name: str) -> dict[str, str]:
         """Preprocessing and API call to TMDB to retrieve data about the movie / show
 
         Args:
@@ -89,7 +92,7 @@ class VideoMetadataReader:
 
         return metadata
 
-    def _get_video_file_metadata(self, video_file_path: str) -> dict:
+    def _get_video_file_metadata(self, video_file_path: str) -> dict[str, str]:
         """Uses MediaInfo wrapper to get local video file metadata:
 
         Args:
@@ -117,7 +120,7 @@ class VideoMetadataReader:
         return metadata
 
     # TODO: Find a way to get nice screenshots (Get metadata frame for screenshot)
-    def _get_video_file_screenshot(self, video_file_path: str) -> Optional[np.ndarray]:
+    def _get_video_file_screenshot(self, video_file_path: str) -> np.ndarray | None:
         """Uses OpenCV to get local video file sneek peak screenshot for the UI:
 
         Args:
