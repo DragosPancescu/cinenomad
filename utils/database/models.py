@@ -36,6 +36,20 @@ class VideoMetadata:
             + time_obj.second
             + time_obj.microsecond / 1_000_000
         )
+        
+    def get_length_mins(self) -> int:
+        """Methods that returns the video length in minutes
+
+        Returns:
+            int: Number of minutes in the video
+        """
+        time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
+        return int(
+            time_obj.hour * 60
+            + time_obj.minute
+            + time_obj.second / 3600
+            + time_obj.microsecond / 1_000_000
+        )
 
     def get_length_gui_format(self) -> str:
         """Returns the datetime format that appears in the GUI

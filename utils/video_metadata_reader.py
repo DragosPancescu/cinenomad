@@ -2,6 +2,8 @@ import os
 import re
 import copy
 
+from datetime import datetime
+
 import cv2
 import numpy as np
 
@@ -55,12 +57,13 @@ class VideoMetadataReader:
             )
         return file_names
 
-    def _get_tmdb_movie_metadata(self, file_name: str) -> dict[str, str]:
+    def _get_tmdb_movie_metadata(self, file_name: str, runtime_mins: int) -> dict[str, str]:
         """Preprocessing and API call to TMDB to retrieve data about the movie / show
 
         Args:
             file_name (str): Original local media file name
-
+            runtime_mins (int): Video length in minutes
+            
         Returns:
             dict: Extracted data from TMDB
         """
@@ -78,7 +81,7 @@ class VideoMetadataReader:
         is_tvshow = bool(season_episode)
 
         # API Call to  get info about movie / show
-        movie_data = search_movie_tmbd_api_call(movie_name, is_tvshow)
+        movie_data = search_movie_tmbd_api_call(movie_name, runtime_mins, is_tvshow)
 
         # Return dict with needed data
         metadata = get_tmdb_metadata(movie_data, is_tvshow)

@@ -58,15 +58,15 @@ def search_crew_tmdb_api_call(tmdb_id: str, is_tvshow: bool) -> str | None:
     return None
 
 
-def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> dict[str, str] | None:
+def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> list[dict[str, str]] | None:
     """Sends an API call to the search endpoint to retrieve data about the movie or tv show
-
+    
     Args:
         movie_name (str): Name of the movie
         is_tvshow (bool): Indicates whether the media is a TV Show (True) or a Movie (False)
 
     Returns:
-        Optional[dict]: Dictionary structure that contains the retrieved information
+        Optional[list[dict]]: List of dictionary structures that contains the retrieved information
     """
     try:
         search_type = "tv" if is_tvshow else "movie"
@@ -83,18 +83,17 @@ def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> dict[str, st
 
         response_dict = json.loads(response.text)
 
-        # TODO: Right now we pick the first as a default, maybe we can filter by year in the future
         if len(response_dict["results"]) == 0:
             print(f"Query returned no data for: {movie_name}")
             return None
-
-        return response_dict["results"][0]
+        return response_dict["results"]
     except Exception as exception:
         print(
             f"Encountered unexpected exception while trying to search movie on TMDB. Exception: {exception}"
         )
     return None
 
+def get_movie_details_api_call(id: str)
 
 def get_tmdb_metadata(movie_data: dict, is_tvshow: bool) -> dict:
     empty_output = {
