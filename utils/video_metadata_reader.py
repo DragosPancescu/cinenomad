@@ -81,7 +81,15 @@ class VideoMetadataReader:
         is_tvshow = bool(season_episode)
 
         # API Call to  get info about movie / show
-        movie_data = search_movie_tmbd_api_call(movie_name, runtime_mins, is_tvshow)
+        movie_search_results = search_movie_tmbd_api_call(movie_name, runtime_mins, is_tvshow)
+        
+        # Filter based on runtime
+        movie_data = None
+        runtime_key = "episode_run_time" if is_tvshow else "runtime"
+        for search_result in movie_search_results:
+            if abs(int(search_result[runtime_key]) - runtime_mins) == 1:
+                movie_data = search_result
+                break
 
         # Return dict with needed data
         metadata = get_tmdb_metadata(movie_data, is_tvshow)
@@ -180,7 +188,15 @@ class VideoMetadataReader:
 
             # Get data
             extracted_metadata = self._get_video_file_metadata(full_path)
-            tmdb_metadata = self._get_tmdb_movie_metadata(file_name)
+            
+            time_obj = datetime.strptime(extracted_metadata["other_duration"][3], "%H:%M:%S.%f")
+            runtime_mins = int(
+                time_obj.hour * 60
+                + time_obj.minute
+                + time_obj.second / 3600
+                + time_obj.microsecond / 1_000_000
+            )
+            tmdb_metadata = self._get_tmdb_movie_metadata(file_name, runtime_mins)
 
             # Language value priority is as follows:
             #   1. language extracted from the local file metadata

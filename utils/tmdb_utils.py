@@ -1,6 +1,8 @@
 import json
 import requests
 
+from typing import Any
+
 from utils.file_handling import load_yaml_file
 
 
@@ -58,7 +60,7 @@ def search_crew_tmdb_api_call(tmdb_id: str, is_tvshow: bool) -> str | None:
     return None
 
 
-def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> list[dict[str, str]] | None:
+def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> list[dict[str, Any]] | None:
     """Sends an API call to the search endpoint to retrieve data about the movie or tv show
     
     Args:
@@ -70,9 +72,9 @@ def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> list[dict[st
     """
     try:
         search_type = "tv" if is_tvshow else "movie"
-        details_url = f"https://api.themoviedb.org/3/search/{search_type}?query={movie_name}&include_adult=false&language=en-US&page=1"
+        search_url = f"https://api.themoviedb.org/3/search/{search_type}?query={movie_name}&include_adult=false&language=en-US&page=1"
 
-        response = requests.get(details_url, headers=HEADERS, timeout=5)
+        response = requests.get(search_url, headers=HEADERS, timeout=5)
 
         if response.status_code != 200:
             print(
@@ -93,7 +95,28 @@ def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> list[dict[st
         )
     return None
 
-def get_movie_details_api_call(id: str)
+def get_movie_details_api_call(id: str, is_tvshow: bool) -> dict[str, Any]:
+    try:
+        search_type = "tv" if is_tvshow else "movie"
+        details_url = f"https://api.themoviedb.org/3/{search_type}/{id}"
+
+        response = requests.get(details_url, headers=HEADERS, timeout=5)
+
+        if response.status_code != 200:
+            print(
+                f"Failed to get details for id: {id}. HTTP status code: {response.status_code}"
+            )
+            print(response.text)
+            return None
+
+        response_dict = json.loads(response.text)
+        return response_dict
+    except Exception as exception:
+        print(
+            f"Encountered unexpected exception while trying to search details for id: {id}. Exception: {exception}"
+        )
+    return None
+    
 
 def get_tmdb_metadata(movie_data: dict, is_tvshow: bool) -> dict:
     empty_output = {
