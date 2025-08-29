@@ -16,6 +16,7 @@ from .exceptions import FolderNotFoundException
 from .tmdb_utils import (
     search_movie_tmbd_api_call,
     get_tmdb_metadata,
+    get_movie_details_api_call,
     download_tmdb_poster,
     search_crew_tmdb_api_call,
     get_tmdb_configuration,
@@ -81,15 +82,25 @@ class VideoMetadataReader:
         is_tvshow = bool(season_episode)
 
         # API Call to  get info about movie / show
-        movie_search_results = search_movie_tmbd_api_call(movie_name, runtime_mins, is_tvshow)
+        movie_search_results = search_movie_tmbd_api_call(movie_name, is_tvshow)
         
         # Filter based on runtime
         movie_data = None
         runtime_key = "episode_run_time" if is_tvshow else "runtime"
-        for search_result in movie_search_results:
-            if abs(int(search_result[runtime_key]) - runtime_mins) == 1:
-                movie_data = search_result
-                break
+
+        if movie_search_results is not None and len(movie_search_results) > 0:
+            for search_result in movie_search_results:
+                details = get_movie_details_api_call(search_result["id"], is_tvshow)
+
+                try:
+                    tmdb_runtime = details[runtime_key][0] if is_tvshow else details[runtime_key]
+                except Exception as e:
+                    print(f"{e}, id: {search_result['id']}")
+                    tmdb_runtime = 0
+
+                if abs(int(tmdb_runtime) - runtime_mins) <= 1:
+                    movie_data = search_result
+                    break
 
         # Return dict with needed data
         metadata = get_tmdb_metadata(movie_data, is_tvshow)

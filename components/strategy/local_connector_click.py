@@ -1,4 +1,5 @@
 import copy
+import math
 import tkinter as tk
 
 from components import AppControlButton
@@ -17,9 +18,17 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
-        self._parent = parent
 
+        # Vars
+        self._parent = parent
         self._config_params = copy.deepcopy(config_params)
+
+        metadata_reader = VideoMetadataReader(FOLDER_PATH)
+        metadata_reader.update_metadata_db()
+
+        self._metadata = queries.get_all_videos()
+        self._movie_index = 0
+        self._movie_list_length = len(self._metadata) if self._metadata is not None else 0
 
         # Configure
         self.withdraw()  # Init in closed state
@@ -28,19 +37,19 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.resizable(False, False)
         self.wm_overrideredirect(True)
         self.configure(**self._config_params["Design"])
-        # Make fullscreen
-        self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0")
+        self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0") # Fullscreen
 
         # Widgets
-        self._canvas = tk.Canvas(self, **self._config_params["Canvas"]["Design"])
-        self._frame = tk.Frame(self._canvas, **self._config_params["Frame"]["Design"])
-
-        self._canvas.pack(**self._config_params["Canvas"]["Placement"])
-        self._canvas.create_window(
-            (4, 4), window=self._frame, anchor="nw", tags="self._frame"
-        )
-
-        # Close button
+        self._movie_card = LocalMovieCard(
+                self,
+                self._config_params["LocalMovieCard"],
+                self._metadata[self._movie_index],
+                self.winfo_screenheight(),
+                self.winfo_screenwidth()
+            )
+        self._movie_card.pack(fill="both", expand=True)
+        self._movie_card.pack_propagate(False)
+            
         self.close_button = AppControlButton(
             self, self._config_params["LocalMovieBrowserModalCloseButton"]["Design"]
         )
@@ -49,36 +58,14 @@ class LocalMovieBrowserModal(tk.Toplevel):
             **self._config_params["LocalMovieBrowserModalCloseButton"]["Placement"]
         )
 
-        # Movie Buttons
-        metadata_reader = VideoMetadataReader(FOLDER_PATH)
-        metadata_reader.update_metadata_db()
-        self._metadata = queries.get_all_videos()
-
-        # TODO: CHECK LENGTH DYNAMICALLY
-        if len(self._metadata) > 3:
-            self._frame.bind("<Configure>", self._on_frame_configure)
-            # Bind mouse wheel and up / down keys for scrolling
+        # Bindings
+        if len(self._metadata) > 1:
             self.bind_all("<Button-4>", self._on_mousewheel)
             self.bind_all("<Button-5>", self._on_mousewheel)
             self.bind_all("<Up>", self._on_mousewheel)
             self.bind_all("<Down>", self._on_mousewheel)
 
-        # Bindings
         self.bind("<Escape>", self.hide)
-
-        # Init player manager
-        row, col = 1, 1
-        for idx, metadata in enumerate(self._metadata):
-            movie_card = LocalMovieCard(
-                self._frame, self._config_params["LocalMovieCard"], metadata
-            )
-            # Position on the grid
-            if idx > 0 and idx % 2 == 0:
-                row += 1
-                col = 1
-            col += 1
-
-            movie_card.grid(row=row, column=col, padx=70, pady=12)
 
     def hide(self, event=None) -> None:
         """Hides the modal and gives back the focus to the parent Widget
@@ -96,22 +83,35 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.focus()
         self.config(cursor="")
 
-    def _on_frame_configure(self, event=None) -> None:
-        """Reset the scroll region to encompass the inner frame"""
-        self._canvas.configure(scrollregion=self._canvas.bbox("all"))
-
     def _on_mousewheel(self, event) -> None:
         """Scroll the canvas using the mouse wheel"""
         if event.num == 4 or event.keysym == "Up":  # Scroll up
-            self._canvas.yview_scroll(-1, "units")
+            if self._movie_index > 0:
+                self._movie_index -= 1
+            else:
+                return
         elif event.num == 5 or event.keysym == "Down":  # Scroll down
-            self._canvas.yview_scroll(1, "units")
+            if self._movie_index < self._movie_list_length - 1:
+                self._movie_index += 1
+            else:
+                return
+
+        self._movie_card.destroy()
+        self._movie_card = LocalMovieCard(
+                self,
+                self._config_params["LocalMovieCard"],
+                self._metadata[self._movie_index ],
+                self.winfo_screenheight(),
+                self.winfo_screenwidth()
+            )
+        self._movie_card.pack(fill="both", expand=True)
+        self._movie_card.pack_propagate(False)
 
 
 class LocalMovieCard(tk.Frame):
     """Card that hold meta information about the movie, poster / screenshot and the play button"""
 
-    def __init__(self, parent: tk.Widget, config_params: dict, metadata: models.VideoMetadata):
+    def __init__(self, parent: tk.Widget, config_params: dict, metadata: models.VideoMetadata, height: int, width: int):
         super().__init__(parent)
         self._parent = parent
         self._metadata = metadata
@@ -120,11 +120,15 @@ class LocalMovieCard(tk.Frame):
 
         # Configure
         self._config_params = copy.deepcopy(config_params)
-        self.configure(**self._config_params["Design"])
+        self.configure(
+            height=height,
+            width=width,
+            **self._config_params["Design"]
+        )
         self._config_params["Title"]["Placement"]["pady"] = tuple(
             self._config_params["Title"]["Placement"]["pady"]
         )
-
+        
         # Widget components
         self._poster_image = metadata.get_image_object()
         self._poster = tk.Label(
@@ -171,7 +175,9 @@ class LocalMovieCard(tk.Frame):
 
         self._overview = tk.Label(
             self,
-            text=f"{metadata.tmdb_overview}",
+            text=metadata.tmdb_overview,
+            width=width,
+            height=math.floor(height / 5),
             **self._config_params["Overview"]["Design"],
         )
 

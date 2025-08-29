@@ -95,10 +95,10 @@ def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> list[dict[st
         )
     return None
 
-def get_movie_details_api_call(id: str, is_tvshow: bool) -> dict[str, Any]:
+def get_movie_details_api_call(tmdb_id: str, is_tvshow: bool) -> dict[str, Any]:
     try:
         search_type = "tv" if is_tvshow else "movie"
-        details_url = f"https://api.themoviedb.org/3/{search_type}/{id}"
+        details_url = f"https://api.themoviedb.org/3/{search_type}/{tmdb_id}"
 
         response = requests.get(details_url, headers=HEADERS, timeout=5)
 

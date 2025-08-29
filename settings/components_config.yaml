@@ -158,7 +158,6 @@ LocalMovieBrowserModal:
       relief: sunken
       background: "#282828"
     Placement:
-      side: left
       fill: both
       expand: true
   Frame:
@@ -170,12 +169,6 @@ LocalMovieBrowserModal:
     Design:
       background: "#282828"
       highlightbackground: "#D9D9D9"
-      borderwidth: 1
-      relief: sunken
-      width: 400
-      height: 500
-      padx: 15
-      pady: 15
     Entry:
       Design: &localMovieCardEntryDesign
         background: "#282828"
@@ -223,9 +216,6 @@ LocalMovieBrowserModal:
         sticky: nwes
     Overview:
       Design:
-        width: 50
-        height: 4
-        wraplength: 375
         justify: left
         anchor: nw
         <<: *localMovieCardEntryDesign
