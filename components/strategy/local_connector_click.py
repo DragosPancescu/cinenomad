@@ -1,7 +1,6 @@
 import copy
 import math
 import tkinter as tk
-import tkinter.font as tkFont
 
 from components import AppControlButton
 from utils import VideoMetadataReader
@@ -12,7 +11,7 @@ from ..vlc_player import Player
 
 # TODO: This will be configurable on first use or after in the settings menu.
 # FOLDER_PATH = r"/home/shared/Local Movies"
-FOLDER_PATH = r"/home/shared/Local Movies/Test"
+FOLDER_PATH = r"D:\Documents\cinenomad_local"
 
 
 class LocalMovieBrowserModal(tk.Toplevel):
@@ -42,6 +41,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0") # Fullscreen
 
         # Widgets
+        # TODO: Check if empty
         self._movie_card = LocalMovieCard(
             self,
             self._config_params["LocalMovieCard"],

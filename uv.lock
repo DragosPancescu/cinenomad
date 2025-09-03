@@ -230,7 +230,6 @@ dependencies = [
     { name = "pyasn1-modules" },
     { name = "pygame" },
     { name = "pyhamcrest" },
-    { name = "pyinotify", marker = "sys_platform == 'linux'" },
     { name = "pyjwt" },
     { name = "pymacaroons" },
     { name = "pymediainfo" },
@@ -324,7 +323,6 @@ requires-dist = [
     { name = "pyasn1-modules", specifier = "==0.2.1" },
     { name = "pygame", specifier = "==2.1.2" },
     { name = "pyhamcrest", specifier = "==2.0.2" },
-    { name = "pyinotify", marker = "sys_platform == 'linux'", specifier = "==0.9.6" },
     { name = "pyjwt", specifier = "==2.3.0" },
     { name = "pymacaroons", specifier = "==0.13.0" },
     { name = "pymediainfo", specifier = ">=7.0.1" },
@@ -975,12 +973,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pyinotify"
-version = "0.9.6"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e3/c0/fd5b18dde17c1249658521f69598f3252f11d9d7a980c5be8619970646e1/pyinotify-0.9.6.tar.gz", hash = "sha256:9c998a5d7606ca835065cdabc013ae6c66eb9ea76a00a1e3bc6e0cfe2b4f71f4", size = 60998, upload-time = "2015-06-04T15:50:23.633Z" }
-
-[[package]]
 name = "pyjwt"
 version = "2.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1110,11 +1102,11 @@ wheels = [
 
 [[package]]
 name = "pytz"
-version = "2022.1"
+version = "2025.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/2f/5f/a0f653311adff905bbcaa6d3dfaf97edcf4d26138393c6ccd37a484851fb/pytz-2022.1.tar.gz", hash = "sha256:1e760e2fe6a8163bc0b3d9a19c4f84342afa0a2affebfaa84b01b978a02ecaa7", size = 320473, upload-time = "2022-03-20T00:37:10.116Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/60/2e/dec1cc18c51b8df33c7c4d0a321b084cf38e1733b98f9d15018880fb4970/pytz-2022.1-py2.py3-none-any.whl", hash = "sha256:e68985985296d9a66a881eb3193b0906246245294a881e7c8afe623866ac6a5c", size = 503520, upload-time = "2022-03-20T00:37:06.783Z" },
+    { url = "https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
 ]
 
 [[package]]

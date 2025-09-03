@@ -28,7 +28,7 @@ class VideoMetadataReader:
 
     def __init__(self, folder_path: str) -> None:
         self._folder_path = folder_path
-        self._accepted_extensions = load_yaml_file("./settings/accepted_extension.yaml")
+        self._accepted_extensions = load_yaml_file(os.path.join(".", "settings", "accepted_extension.yaml"))
         # Full paths
         self._file_names = self._read_video_file_names()
         self._tmdb_configuration = get_tmdb_configuration()
@@ -225,7 +225,8 @@ class VideoMetadataReader:
 
             # Download poster from TMDB
             poster_download_path = os.path.join(
-                "resources/movie_posters",
+                "resources",
+                "movie_posters",
                 os.path.splitext(os.path.basename(file_name))[0] + ".jpg",
             )
             download_tmdb_poster(

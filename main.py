@@ -1,3 +1,4 @@
+import os
 import ctypes
 
 import platform
@@ -8,14 +9,13 @@ from utils.database import schema
 
 
 def main():
-    # Change process name
     if platform.system() == "Linux":
         set_proc_name("cinenomad-alpha")
 
-    # Ensure Xlib is thread-safe
-    ctypes.CDLL("libX11.so").XInitThreads()
+        # Ensure Xlib is thread-safe
+        ctypes.CDLL("libX11.so").XInitThreads()
 
-    config_path = "settings/components_config.yaml"
+    config_path = os.path.join("settings", "components_config.yaml")
 
     # Ensure sqlite3 database is created along with the schema
     schema.create_tables()
