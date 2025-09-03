@@ -83,7 +83,7 @@ class App(tk.Tk):
 
         # Version tag
         self.version_tag = tk.Label(
-            self, text="v0.0.2-alpha", **self._configs["VersionTag"]["Design"]
+            self, text="v0.0.2.a0", **self._configs["VersionTag"]["Design"]
         )
         self.version_tag.place(**self._configs["VersionTag"]["Placement"])
 

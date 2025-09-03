@@ -1,6 +1,7 @@
 import copy
 import math
 import tkinter as tk
+import tkinter.font as tkFont
 
 from components import AppControlButton
 from utils import VideoMetadataReader
@@ -10,7 +11,8 @@ from . import ConnectorClickStrategy
 from ..vlc_player import Player
 
 # TODO: This will be configurable on first use or after in the settings menu.
-FOLDER_PATH = r"/home/shared/Local Movies"
+# FOLDER_PATH = r"/home/shared/Local Movies"
+FOLDER_PATH = r"/home/shared/Local Movies/Test"
 
 
 class LocalMovieBrowserModal(tk.Toplevel):
@@ -41,12 +43,12 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
         # Widgets
         self._movie_card = LocalMovieCard(
-                self,
-                self._config_params["LocalMovieCard"],
-                self._metadata[self._movie_index],
-                self.winfo_screenheight(),
-                self.winfo_screenwidth()
-            )
+            self,
+            self._config_params["LocalMovieCard"],
+            self._metadata[self._movie_index],
+            self.winfo_screenheight(),
+            self.winfo_screenwidth()
+        )
         self._movie_card.pack(fill="both", expand=True)
         self._movie_card.pack_propagate(False)
             
@@ -98,12 +100,12 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
         self._movie_card.destroy()
         self._movie_card = LocalMovieCard(
-                self,
-                self._config_params["LocalMovieCard"],
-                self._metadata[self._movie_index ],
-                self.winfo_screenheight(),
-                self.winfo_screenwidth()
-            )
+            self,
+            self._config_params["LocalMovieCard"],
+            self._metadata[self._movie_index ],
+            self.winfo_screenheight(),
+            self.winfo_screenwidth()
+        )
         self._movie_card.pack(fill="both", expand=True)
         self._movie_card.pack_propagate(False)
 
@@ -125,9 +127,6 @@ class LocalMovieCard(tk.Frame):
             width=width,
             **self._config_params["Design"]
         )
-        self._config_params["Title"]["Placement"]["pady"] = tuple(
-            self._config_params["Title"]["Placement"]["pady"]
-        )
         
         # Widget components
         self._poster_image = metadata.get_image_object()
@@ -141,11 +140,6 @@ class LocalMovieCard(tk.Frame):
             self, **self._config_params["RightSidePanel"]["Design"]
         )
 
-        self._title = tk.Label(
-            self._right_side_panel,
-            text=metadata.get_gui_title(),
-            **self._config_params["Title"]["Design"],
-        )
 
         self._year_director = tk.Label(
             self._right_side_panel,
@@ -173,32 +167,50 @@ class LocalMovieCard(tk.Frame):
         self._play_button.bind("<Enter>", self._on_hover_switch_colors)
         self._play_button.bind("<Leave>", self._on_hover_switch_colors)
 
-        self._overview = tk.Label(
-            self,
-            text=metadata.tmdb_overview,
-            width=width,
-            height=math.floor(height / 5),
-            **self._config_params["Overview"]["Design"],
-        )
-
         self._genres = tk.Label(
             self,
             text=f"{' | '.join(metadata.tmdb_genres)}",
             **self._config_params["Genres"]["Design"],
         )
 
-        # Placement
-        self._poster.grid(**self._config_params["Poster"]["Placement"])
-        self._title.pack(**self._config_params["Title"]["Placement"])
-        self._year_director.pack(**self._config_params["Entry"]["Placement"])
-        self._language.pack(**self._config_params["Entry"]["Placement"])
-        self._play_button.pack(**self._config_params["PlayButton"]["Placement"])
-        self._length.pack(**self._config_params["Entry"]["Placement"])
-        self._right_side_panel.grid(
-            **self._config_params["RightSidePanel"]["Placement"]
+
+        self._poster_frame = tk.Frame(
+            self,
+            highlightthickness=1,
+            highlightbackground="#D9D9D9",
+            background="#282828"
         )
-        self._overview.grid(**self._config_params["Overview"]["Placement"])
-        self._genres.grid(**self._config_params["Genres"]["Placement"])
+
+        self._entries_frame = tk.Frame(
+            self,
+            highlightthickness=1,
+            highlightbackground="#D9D9D9",
+            background="#282828"
+        )
+
+        title_font_size = max(10, int(math.floor(height * 0.75 * 0.2 * 0.35)))
+        self._title = tk.Label(
+            self._entries_frame,
+            text=metadata.get_gui_title(),
+            font=("Roboto Mono", title_font_size),
+            **self._config_params["Title"]["Design"],
+        )
+
+        overview_font_size = max(10, int(math.floor(height * 0.25) * 0.4 * 0.3))
+        self._overview = tk.Label(
+            self,
+            text=metadata.tmdb_overview,
+            font=("Roboto Mono", overview_font_size),
+            wraplength=width,
+            **self._config_params["Overview"]["Design"],
+        )
+
+        # Placement
+        self._poster_frame.place(x=0, y=0, width=math.floor(width * 0.25), height=math.floor(height * 0.75))
+        self._entries_frame.place(x=width - math.floor(width * 0.75), y=0, width=math.floor(width * 0.75), height=math.floor(height * 0.75))
+        self._title.place(x=0, y=0, width=math.floor(width * 0.75), height=math.floor(height * 0.75 * 0.2))
+        self._overview.place(x=0, y=height - math.floor(height * 0.25), width=width, height=math.floor(height * 0.25))
+
 
     def _open_player(self, event=None) -> None:
         self._player = Player(

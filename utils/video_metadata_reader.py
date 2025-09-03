@@ -29,6 +29,7 @@ class VideoMetadataReader:
     def __init__(self, folder_path: str) -> None:
         self._folder_path = folder_path
         self._accepted_extensions = load_yaml_file("./settings/accepted_extension.yaml")
+        # Full paths
         self._file_names = self._read_video_file_names()
         self._tmdb_configuration = get_tmdb_configuration()
 
@@ -42,7 +43,7 @@ class VideoMetadataReader:
         try:
             for file in os.listdir(self._folder_path):
                 if os.path.isfile(os.path.join(self._folder_path, file)):
-                    file_names.append(file)
+                    file_names.append(os.path.join(self._folder_path, file))
 
             # Filter using the accepted extensions list
             file_names = [
@@ -181,15 +182,13 @@ class VideoMetadataReader:
 
         # Remove metadata from the database that is not in the folder
         for db_full_path in db_full_paths:
-            if not os.path.split(db_full_path)[-1] in self._file_names:
-                print(f"Deleted: {db_full_path} from database")
+            if not db_full_path in self._file_names:
                 queries.delete_video_by_path(db_full_path)
+                print(f"Deleted: {db_full_path} from database")
 
         for file_name in self._file_names:
-            full_path = os.path.join(self._folder_path, file_name)
-
             # If video metadata already exists
-            if full_path in db_full_paths:
+            if file_name in db_full_paths:
                 continue
 
             sub_path = os.path.join(
@@ -198,7 +197,7 @@ class VideoMetadataReader:
             )
 
             # Get data
-            extracted_metadata = self._get_video_file_metadata(full_path)
+            extracted_metadata = self._get_video_file_metadata(file_name)
             
             time_obj = datetime.strptime(extracted_metadata["other_duration"][3], "%H:%M:%S.%f")
             runtime_mins = int(
@@ -227,7 +226,7 @@ class VideoMetadataReader:
             # Download poster from TMDB
             poster_download_path = os.path.join(
                 "resources/movie_posters",
-                os.path.splitext(os.path.basename(full_path))[0] + ".jpg",
+                os.path.splitext(os.path.basename(file_name))[0] + ".jpg",
             )
             download_tmdb_poster(
                 tmdb_metadata["poster_path"],
@@ -248,7 +247,7 @@ class VideoMetadataReader:
                 language=language,
                 length=extracted_metadata["other_duration"][3],
                 image_path=poster_download_path,
-                full_path=full_path,
+                full_path=file_name,
                 full_sub_path=sub_path,
                 tmdb_title=tmdb_metadata["title"],
                 tmdb_director=tmdb_metadata["director"],
