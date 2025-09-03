@@ -1,7 +1,8 @@
-import tkinter as tk
+import os
 import copy
+import tkinter as tk
 
-from utils.chrome import open_flatpak_chrome, close_chrome
+from utils.chrome import open_chrome, close_chrome
 from utils.file_handling import load_yaml_file
 from . import ConnectorClickStrategy
 
@@ -26,7 +27,7 @@ class YoutubeBrowserModal(tk.Toplevel):
         # Controls
         self.bind("<Escape>", self.close)
 
-        self._args = load_yaml_file("./settings/chrome_process_config.yaml")
+        self._args = load_yaml_file(os.path.join(".", "settings", "chrome_process_config.yaml"))
         self._profile = "Default"
         self._process = None
     
@@ -37,7 +38,7 @@ class YoutubeBrowserModal(tk.Toplevel):
         self.destroy()
 
     def show(self) -> None:
-        self._chrome_process = open_flatpak_chrome(
+        self._chrome_process = open_chrome(
             "https://www.youtube.com", self._profile, *self._args
         )
 
