@@ -173,53 +173,25 @@ LocalMovieBrowserModal:
       Design: &localMovieCardEntryDesign
         background: "#282828"
         foreground: "#D9D9D9"
-      Placement: &localMovieCardEntryPlacement
-        side: top
-        anchor: nw
-    NotFoundEntry:
-      Design:
-        background: "#282828"
-        foreground: "#F08800"
+        justify: left
+        anchor: w
     Poster:
       Design:
-        width: 200
-        height: 300
         borderwidth: 0
-      Placement:
-        row: 0
-        column: 0
-        sticky: nw
     Title:
       Design:
         justify: left
         anchor: w
-        highlightthickness: 1
-        highlightbackground: "#D9D9D9"
         <<: *localMovieCardEntryDesign
     PlayButton:
       Design:
-        text: "▶ Play"
+        text: "Watch this movie"
+        borderwidth: 1
         <<: *addMovieSourceModalButtonDesign
-      Placement:
-        side: bottom
-        anchor: s
-        fill: x
-        expand: false
-    RightSidePanel:
-      Design:
-        background: "#282828"
-        highlightthickness: 1
-        highlightbackground: "#D9D9D9"
-        width: 200
-      Placement:
-        row: 0
-        column: 1
-        sticky: nwes
     Overview:
       Design:
         justify: left
-        highlightthickness: 1
-        highlightbackground: "#D9D9D9"
+        anchor: w
         <<: *localMovieCardEntryDesign
     Genres:
       Design:
@@ -229,11 +201,6 @@ LocalMovieBrowserModal:
         highlightthickness: 1
         highlightbackground: "#D9D9D9"
         <<: *localMovieCardEntryDesign
-      Placement:
-        row: 2
-        column: 0
-        columnspan: 2
-        sticky: nw
     Player:
       Design:
         background: "#000000"
