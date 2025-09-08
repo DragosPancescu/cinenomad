@@ -81,7 +81,7 @@ class VideoMetadata:
         """
         if os.path.exists(self.image_path):
             image = Image.open(self.image_path).resize(
-                (200, 300), Image.Resampling.LANCZOS
+                (200, 300), Image.LANCZOS
             )
             return ImageTk.PhotoImage(image)
         return None

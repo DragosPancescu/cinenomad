@@ -191,12 +191,11 @@ LocalMovieBrowserModal:
         sticky: nw
     Title:
       Design:
+        justify: left
+        anchor: w
+        highlightthickness: 1
+        highlightbackground: "#D9D9D9"
         <<: *localMovieCardEntryDesign
-      Placement:
-        pady:
-          - 0
-          - 10
-        <<: *localMovieCardEntryPlacement
     PlayButton:
       Design:
         text: "▶ Play"
@@ -209,6 +208,8 @@ LocalMovieBrowserModal:
     RightSidePanel:
       Design:
         background: "#282828"
+        highlightthickness: 1
+        highlightbackground: "#D9D9D9"
         width: 200
       Placement:
         row: 0
@@ -217,19 +218,16 @@ LocalMovieBrowserModal:
     Overview:
       Design:
         justify: left
-        anchor: nw
+        highlightthickness: 1
+        highlightbackground: "#D9D9D9"
         <<: *localMovieCardEntryDesign
-      Placement:
-        row: 1
-        column: 0
-        columnspan: 2
-        pady: 15
-        sticky: nw
     Genres:
       Design:
         width: 50
         height: 1
         anchor: nw
+        highlightthickness: 1
+        highlightbackground: "#D9D9D9"
         <<: *localMovieCardEntryDesign
       Placement:
         row: 2

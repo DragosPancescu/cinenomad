@@ -131,8 +131,10 @@ def delete_video_by_path(path: str) -> None:
         DELETE FROM video_metadata
         WHERE full_path LIKE ?;
         """,
-        path,
+        [path]
     )
+    conn.commit()
+
 
 def get_connectors() -> list[Connector] | None:
     """Retrieves all available connectors

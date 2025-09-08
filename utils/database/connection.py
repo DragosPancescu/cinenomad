@@ -1,3 +1,5 @@
+import os
+
 import sqlite3
 import threading
 
@@ -6,9 +8,7 @@ class AppDatabase:
     """
     _conn = None
     _lock = threading.Lock()
-
-    # TODO": Make configurable
-    _path= r"/home/shared/Media-System-Player/db/database.db"
+    _path= os.path.join("db", "database.db")
 
     @classmethod
     def get_connection(cls) -> sqlite3.Connection:
