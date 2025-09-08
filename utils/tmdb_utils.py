@@ -1,3 +1,4 @@
+import os
 import json
 import requests
 
@@ -7,13 +8,13 @@ from utils.file_handling import load_yaml_file
 
 
 # Build script global values
-tmdb_settings = load_yaml_file("settings/tmdb_settings.yaml")
+tmdb_settings = load_yaml_file(os.path.join("settings", "tmdb_settings.yaml"))
 
 MOVIE_GENRE_MAP = tmdb_settings["MovieGenreMap"]
 TV_GENRE_MAP = tmdb_settings["TvGenreMap"]
 HEADERS = tmdb_settings["ApiHeaders"]
 HEADERS["Authorization"] = str(HEADERS["Authorization"]).replace(
-    "$token$", load_yaml_file("./settings/api_keys.yaml")["TmdbApiKey"]
+    "$token$", load_yaml_file(os.path.join(".", "settings", "api_keys.yaml"))["TmdbApiKey"]
 )
 
 

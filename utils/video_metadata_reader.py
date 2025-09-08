@@ -190,10 +190,13 @@ class VideoMetadataReader:
             # If video metadata already exists
             if file_name in db_full_paths:
                 continue
-
+            
+            # Get file name without extension
+            file_name_no_ext = os.path.splitext(os.path.basename(file_name))[0]
+            
             sub_path = os.path.join(
                 self._folder_path,
-                f"{os.path.splitext(os.path.basename(file_name))[0]}.srt",
+                f"{file_name_no_ext}.srt",
             )
 
             # Get data
@@ -206,7 +209,7 @@ class VideoMetadataReader:
                 + time_obj.second / 3600
                 + time_obj.microsecond / 1_000_000
             )
-            tmdb_metadata = self._get_tmdb_movie_metadata(file_name, runtime_mins)
+            tmdb_metadata = self._get_tmdb_movie_metadata(file_name_no_ext, runtime_mins)
 
             # Language value priority is as follows:
             #   1. language extracted from the local file metadata
@@ -227,7 +230,7 @@ class VideoMetadataReader:
             poster_download_path = os.path.join(
                 "resources",
                 "movie_posters",
-                os.path.splitext(os.path.basename(file_name))[0] + ".jpg",
+                f"{file_name_no_ext}.jpg",
             )
             download_tmdb_poster(
                 tmdb_metadata["poster_path"],

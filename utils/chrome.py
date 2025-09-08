@@ -3,7 +3,7 @@ import signal
 import os
 
 
-def open_flatpak_chrome(url: str, profile: str, *args) -> subprocess.Popen | None:
+def open_chrome(url: str, profile: str, *args) -> subprocess.Popen | None:
     """Opens a URL in Google Chrome with optional arguments.
 
     Args:
@@ -33,16 +33,16 @@ def open_flatpak_chrome(url: str, profile: str, *args) -> subprocess.Popen | Non
         process = subprocess.Popen(command, start_new_session=True)
         return process
     except FileNotFoundError:
-        print("Flatpak is not installed, or Chrome is not installed via Flatpak.")
+        print(f"Chrome is not installed: {exception}")
     except subprocess.CalledProcessError as exception:
-        print(f"Failed to open Chrome via Flatpak: {exception}")
+        print(f"Failed to open Chrome: {exception}")
     except Exception as exception:
         print(f"An error occurred: {exception}")
     return None
 
 
 def close_chrome(process: subprocess.Popen) -> None:
-    """Closes the Chrome instance launched via Flatpak.
+    """Closes the Chrome instance.
 
     Args:
         process (subprocess.Popen): The Popen process object for the Chrome instance.

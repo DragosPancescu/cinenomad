@@ -37,4 +37,4 @@ def create_tables() -> None:
                 """
             )
     except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
-        raise RuntimeError(f"Could not create table 'movie_metadata': {e}") from e
+        raise RuntimeError(f"Could not create tables: {e}") from e
