@@ -1,3 +1,4 @@
+import platform
 import subprocess
 import tkinter as tk
 
@@ -131,8 +132,11 @@ class App(tk.Tk):
         Args:
             event (n/a, optional): Event sent by the event handler in Tkinter. Defaults to None.
         """
-        # TODO: Logger
-        print("App closed")
+        print("App closed.")
         self.quit()
         self.destroy()
-        subprocess.run(["sudo", "/sbin/shutdown", "-h", "now"], check=False)
+        
+        if platform.system() == "Windows":
+            subprocess.run(["shutdown", "/s", "/t", "0"], check=False)
+        else:
+            subprocess.run(["sudo", "/sbin/shutdown", "-h", "now"], check=False)

@@ -128,87 +128,107 @@ class LocalMovieCard(tk.Frame):
             **self._config_params["Design"]
         )
         
-        # Widget components
-        self._poster_image = metadata.get_image_object()
+        entries_left_padx = math.floor(width * 0.02)
+        title_pad = math.floor(height * 0.02)
+        
+        # TODO : Widget components
+        self._genres = tk.Label(
+            self,
+            text=f"{' | '.join(metadata.tmdb_genres)}",
+            **self._config_params["Genres"]["Design"],
+        )
+        
+        poster_frame_height = math.floor(height * 0.75)
+        poster_frame_width = math.floor(poster_frame_height * 0.66)
+        self._poster_frame = tk.Frame(
+            self,
+            background="#282828"
+        )
+        
+        poster_height = poster_frame_height - (title_pad * 2)
+        poster_width = poster_frame_width - (title_pad * 2)
+        self._poster_image = metadata.get_image_object(poster_width, poster_height)
         self._poster = tk.Label(
             self,
             image=self._poster_image,
             **self._config_params["Poster"]["Design"],
         )
 
-        self._right_side_panel = tk.Frame(
-            self, **self._config_params["RightSidePanel"]["Design"]
-        )
-
-
-        self._year_director = tk.Label(
-            self._right_side_panel,
-            text=f"{metadata.tmdb_year} | {metadata.tmdb_director}",
-            **self._config_params["Entry"]["Design"],
-        )
-
-        self._length = tk.Label(
-            self._right_side_panel,
-            text=f"{metadata.get_length_gui_format()}",
-            **self._config_params["Entry"]["Design"],
-        )
-
-        self._language = tk.Label(
-            self._right_side_panel,
-            text=f"{metadata.language.title()}",
-            **self._config_params["Entry"]["Design"],
-        )
-
-        self._play_button = tk.Button(
-            self._right_side_panel,
-            command=self._open_player,
-            **self._config_params["PlayButton"]["Design"],
-        )
-        self._play_button.bind("<Enter>", self._on_hover_switch_colors)
-        self._play_button.bind("<Leave>", self._on_hover_switch_colors)
-
-        self._genres = tk.Label(
-            self,
-            text=f"{' | '.join(metadata.tmdb_genres)}",
-            **self._config_params["Genres"]["Design"],
-        )
-
-        self._poster_frame = tk.Frame(
-            self,
-            highlightthickness=1,
-            highlightbackground="#D9D9D9",
-            background="#282828"
-        )
-
+        entries_frame_height = math.floor(height * 0.75)
+        entries_frame_width = math.floor(width - poster_frame_width)
         self._entries_frame = tk.Frame(
             self,
-            highlightthickness=1,
-            highlightbackground="#D9D9D9",
             background="#282828"
         )
-
-        title_font_size = max(10, int(math.floor(height * 0.75 * 0.2 * 0.35)))
+        
+        title_height = math.floor(entries_frame_height * 0.1)
+        title_font_size = max(10, int(title_height * 0.70))
         self._title = tk.Label(
             self._entries_frame,
             text=metadata.get_gui_title(),
             font=("Roboto Mono", title_font_size),
             **self._config_params["Title"]["Design"],
         )
+        
+        entries_height = math.floor(entries_frame_height * 0.06)
+        entries_width = math.floor(entries_frame_width * 0.5)
+        entries_font_size = max(10, int(entries_height * 0.6))
+        
+        self._year_director = tk.Label(
+            self._entries_frame,
+            font=("Roboto Mono", entries_font_size),
+            text=f"{metadata.tmdb_year} | {metadata.tmdb_director}",
+            **self._config_params["Entry"]["Design"],
+        )
+        
+        self._language = tk.Label(
+            self._entries_frame,
+            font=("Roboto Mono", entries_font_size),
+            text=f"{metadata.language.title()}",
+            **self._config_params["Entry"]["Design"],
+        )
 
-        overview_font_size = max(10, int(math.floor(height * 0.25) * 0.4 * 0.3))
+        self._length = tk.Label(
+            self._entries_frame,
+            font=("Roboto Mono", entries_font_size),
+            text=f"{metadata.get_length_gui_format()}",
+            **self._config_params["Entry"]["Design"],
+        )
+        
+        play_button_height = math.floor(entries_frame_height * 0.1)
+        play_button_width = math.floor(entries_frame_width * 0.35)
+        play_button_font_size = max(10, int(play_button_height * 0.4))
+        self._play_button = tk.Button(
+            self._entries_frame,
+            font=("Roboto Mono", play_button_font_size),
+            command=self._open_player,
+            **self._config_params["PlayButton"]["Design"],
+        )
+        self._play_button.bind("<Enter>", self._on_hover_switch_colors)
+        self._play_button.bind("<Leave>", self._on_hover_switch_colors)
+
+        overview_height = math.floor(height * 0.25)
+        overview_font_size = max(10, int(overview_height * 0.4 * 0.3))
         self._overview = tk.Label(
             self,
             text=metadata.tmdb_overview,
             font=("Roboto Mono", overview_font_size),
-            wraplength=width,
+            wraplength=width - (title_pad * 2),
             **self._config_params["Overview"]["Design"],
         )
-
+        
         # Placement
-        self._poster_frame.place(x=0, y=0, width=math.floor(width * 0.25), height=math.floor(height * 0.75))
-        self._entries_frame.place(x=width - math.floor(width * 0.75), y=0, width=math.floor(width * 0.75), height=math.floor(height * 0.75))
-        self._title.place(x=0, y=0, width=math.floor(width * 0.75), height=math.floor(height * 0.75 * 0.2))
-        self._overview.place(x=0, y=height - math.floor(height * 0.25), width=width, height=math.floor(height * 0.25))
+        self._poster_frame.place(x=0, y=0, width=poster_frame_width, height=poster_frame_height)
+        self._poster.place(x=title_pad, y=title_pad, width=poster_width, height=poster_height)
+        
+        self._entries_frame.place(x=width - entries_frame_width, y=0, width=entries_frame_width, height=entries_frame_height)
+        self._title.place(x=entries_left_padx, y=title_pad, width=entries_frame_width, height=title_height)
+        self._year_director.place(x=entries_left_padx, y=title_height + (title_pad * 2), width=entries_width, height=entries_height)
+        self._language.place(x=entries_left_padx, y=title_height + entries_height + (title_pad * 2), width=entries_width, height=entries_height)
+        self._length.place(x=entries_left_padx, y=title_height + (entries_height * 2) + (title_pad * 2), width=entries_width, height=entries_height)
+        self._play_button.place(x=entries_left_padx, y=entries_frame_height - play_button_height - title_pad, width=play_button_width, height=play_button_height)
+        
+        self._overview.place(x=title_pad, y=height - overview_height, width=width - (title_pad * 2), height=overview_height)
 
 
     def _open_player(self, event=None) -> None:

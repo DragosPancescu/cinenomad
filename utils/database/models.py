@@ -73,15 +73,19 @@ class VideoMetadata:
             return f"{self.tmdb_title} - {season_episode.group()}"
         return self.tmdb_title
 
-    def get_image_object(self) -> ImageTk.PhotoImage | None:
+    def get_image_object(self, width: int, height: int) -> ImageTk.PhotoImage | None:
         """Retrieves the resized poster image ready to use in the GUI
+
+        Args:
+            width (int): Resize width
+            height (int): Resize height
 
         Returns:
             Optional[ImageTk.PhotoImage]: ImageTk image object easy to embbed in the GUI
         """
         if os.path.exists(self.image_path):
             image = Image.open(self.image_path).resize(
-                (200, 300), Image.LANCZOS
+                (width, height), Image.LANCZOS
             )
             return ImageTk.PhotoImage(image)
         return None

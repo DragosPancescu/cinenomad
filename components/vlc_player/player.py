@@ -31,7 +31,7 @@ class Player(tk.Toplevel):
         self._video_path = video_path
         self._sub_path = sub_path
         self._config_params = copy.deepcopy(config_params)
-        self._vlc_player_config = load_yaml_file("settings/vlc_player_config.yaml")
+        self._vlc_player_config = load_yaml_file(os.path.join("settings", "vlc_player_config.yaml"))
         self._total_seconds = total_seconds
         # Tracks if the scale is being updated by the player
         self._scale_updating = False
@@ -270,7 +270,7 @@ class PlayerMenu(tk.Toplevel):
         # Widgets
         # Configure Play button
         self._play_button_icon = read_tk_image(
-            "resources/player_buttons/Play.png"
+            os.path.join("resources", "player_buttons", "Play.png")
         )
         self._play_button = tk.Button(
             self,
@@ -281,7 +281,7 @@ class PlayerMenu(tk.Toplevel):
 
         # Configure Stop button
         self._stop_button_icon = read_tk_image(
-            "resources/player_buttons/Pause.png"
+            os.path.join("resources", "player_buttons", "Pause.png")
         )
         self._stop_button = tk.Button(
             self,
@@ -292,7 +292,7 @@ class PlayerMenu(tk.Toplevel):
 
         # Configure Forward button
         self._forward_button_icon = read_tk_image(
-            "resources/player_buttons/Forward.png"
+            os.path.join("resources", "player_buttons", "Forward.png")
         )
         self._forward_button = tk.Button(
             self,
@@ -303,7 +303,7 @@ class PlayerMenu(tk.Toplevel):
 
         # Configure Backward button
         self._backward_button_icon = read_tk_image(
-            "resources/player_buttons/Backward.png"
+            os.path.join("resources", "player_buttons", "Backward.png")
         )
         self._backwards_button = tk.Button(
             self,

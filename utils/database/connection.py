@@ -9,8 +9,6 @@ class AppDatabase:
     _conn = None
     _lock = threading.Lock()
     _path= os.path.join("db", "database.db")
-    if not os.path.exists("db"):
-        os.makedirs("db")
 
     @classmethod
     def get_connection(cls) -> sqlite3.Connection:
