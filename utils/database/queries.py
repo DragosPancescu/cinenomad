@@ -1,5 +1,5 @@
 from .connection import AppDatabase
-from .models import VideoMetadata, Connector
+from .models import VideoMetadata, Connector, Setting
 
 
 def insert_video(metadata: VideoMetadata) -> None:
@@ -140,7 +140,7 @@ def get_connectors() -> list[Connector] | None:
     """Retrieves all available connectors
 
     Returns:
-        list[Connector]: List of Connector objects
+        Optional[list[Connector]]: List of Connector objects
     """    
     conn = AppDatabase.get_connection()
     cursor = conn.cursor()
@@ -167,3 +167,64 @@ def get_connectors() -> list[Connector] | None:
             )
         )
     return connectors
+
+
+def get_setting_value(name: str) -> str | None:
+    """Retrievs a setting's value
+
+    Args:
+        name (str): Name of the setting
+
+    Returns:
+        Optional[str]: Value of the given setting
+    """
+    conn = AppDatabase.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT value
+        FROM setting
+        WHERE name LIKE ?;
+        """,
+        [name]
+    )
+
+    row = cursor.fetchone()
+    if row is None:
+        print(f"Could not find setting: {name}")
+        return None
+    
+    return row[0]
+
+
+def get_all_settings() -> list[Setting] | None:
+    """Retrives all settings
+
+    Returns:
+        list[Setting] | None: _description_
+    """
+    conn = AppDatabase.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        SELECT *
+        FROM settings;
+        """
+    )
+
+    rows = cursor.fetchall()
+    if rows is None:
+        print("Could not find any settings")
+        return None
+    
+    settings = []
+    for row in rows:
+        settings.append(
+            Setting(
+                name=row[1],
+                value=row[2]
+            )
+        )
+    return settings

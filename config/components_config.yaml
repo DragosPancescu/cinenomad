@@ -168,7 +168,6 @@ LocalMovieBrowserModal:
   LocalMovieCard:
     Design:
       background: "#282828"
-      highlightbackground: "#D9D9D9"
     Entry:
       Design: &localMovieCardEntryDesign
         background: "#282828"
