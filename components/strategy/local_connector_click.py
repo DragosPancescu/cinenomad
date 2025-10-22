@@ -10,8 +10,8 @@ from . import ConnectorClickStrategy
 from ..vlc_player import Player
 
 # TODO: This will be configurable on first use or after in the settings menu.
-#FOLDER_PATH = r"/home/shared/Local Movies"
-FOLDER_PATH = r"D:\Documents\cinenomad_local"
+FOLDER_PATH = r"/home/shared/Local Movies"
+
 
 
 class LocalMovieBrowserModal(tk.Toplevel):
