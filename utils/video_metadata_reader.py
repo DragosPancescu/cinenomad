@@ -21,6 +21,7 @@ from .tmdb_utils import (
     search_crew_tmdb_api_call,
     get_tmdb_configuration,
 )
+from utils.torrent_name_parser import TNP
 
 
 class VideoMetadataReader:
@@ -71,18 +72,14 @@ class VideoMetadataReader:
         """
 
         # Extract movie name from file_name
-        movie_name = re.sub("[^a-zA-Z]", " ", file_name)
-        movie_name = " ".join(
-            [word.title() for word in movie_name.split() if word != ""][0:3]
-        )
-
-        if len(movie_name.split()[-1]) <= 2:
-            movie_name = " ".join(movie_name.split()[0:-1])
+        tnp = TNP()
+        movie_name = tnp.parse(file_name)["title"]
 
         season_episode = re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", file_name)
         is_tvshow = bool(season_episode)
 
         # API Call to  get info about movie / show
+
         movie_search_results = search_movie_tmbd_api_call(movie_name, is_tvshow)
         
         # Filter based on runtime
