@@ -1,7 +1,11 @@
+import os
+
 import sqlite3
 
-from .connection import AppDatabase
 
+from .connection import AppDatabase
+from utils.file_handling import load_yaml_file
+from . import queries
 
 def create_tables() -> None:
     """Runs SQL query to create the schema"""
@@ -36,5 +40,31 @@ def create_tables() -> None:
                 );
                 """
             )
+            
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS setting (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    name TEXT NOT NULL,
+                    value TEXT
+                );
+                """
+            )
     except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
         raise RuntimeError(f"Could not create tables: {e}") from e
+
+
+def seed_default() -> None:
+    setting_names = load_yaml_file(os.path.join(".", "config", "app_settings.yaml"))
+    conn = AppDatabase.get_connection()
+    with conn:
+        for setting_name in setting_names:
+            if queries.get_setting_value(setting_name) is not None:
+                continue
+            
+            conn.execute(
+                f"""
+                INSERT INTO setting ('name', 'value')
+                VALUES ('{setting_name}', '');
+                """
+            )

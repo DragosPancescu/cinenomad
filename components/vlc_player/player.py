@@ -31,7 +31,7 @@ class Player(tk.Toplevel):
         self._video_path = video_path
         self._sub_path = sub_path
         self._config_params = copy.deepcopy(config_params)
-        self._vlc_player_config = load_yaml_file(os.path.join("settings", "vlc_player_config.yaml"))
+        self._vlc_player_config = load_yaml_file(os.path.join("config", "vlc_player_config.yaml"))
         self._total_seconds = total_seconds
         # Tracks if the scale is being updated by the player
         self._scale_updating = False

@@ -88,6 +88,9 @@ class App(tk.Tk):
         )
         self.version_tag.place(**self._configs["VersionTag"]["Placement"])
 
+    def show_add_local_folder_path(self) -> None:
+        pass
+    
     def show_add_new_connector_modal(self) -> None:
         """Makes the 'Add new connector modal' visible and brings the focus to it."""
         self.new_connector_modal.deiconify()

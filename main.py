@@ -17,7 +17,7 @@ def main():
         ctypes.CDLL("libX11.so").XInitThreads()
     
     # Create required folders if first run
-    required_folders = load_yaml_file(os.path.join("settings", "required_folders.yaml"))
+    required_folders = load_yaml_file(os.path.join("config", "required_folders.yaml"))
     for folder_path in required_folders:
         if isinstance(folder_path, list):
            folder_path = os.path.join(*folder_path)
@@ -25,10 +25,11 @@ def main():
         if not os.path.exists(folder_path):
             os.makedirs(folder_path)
 
-    config_path = os.path.join("settings", "components_config.yaml")
+    config_path = os.path.join("config", "components_config.yaml")
     
     # Ensure sqlite3 database is created along with the schema
     schema.create_tables()
+    schema.seed_default()
 
     # Start app
     app = App(config_path)

@@ -97,3 +97,11 @@ class Connector:
 
     name: str
     icon_path: str
+
+
+@dataclass()
+class Setting:
+    """Model class for the application settings that can be accessed by the user"""
+    
+    name: str
+    value: str
