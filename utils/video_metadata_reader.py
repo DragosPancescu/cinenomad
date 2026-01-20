@@ -79,7 +79,6 @@ class VideoMetadataReader:
         is_tvshow = bool(season_episode)
 
         # API Call to  get info about movie / show
-
         movie_search_results = search_movie_tmbd_api_call(movie_name, is_tvshow)
         
         # Filter based on runtime
@@ -88,6 +87,10 @@ class VideoMetadataReader:
 
         if movie_search_results is not None and len(movie_search_results) > 0:
             for search_result in movie_search_results:
+                if is_tvshow:
+                    movie_data = search_result
+                    break
+
                 details = get_movie_details_api_call(search_result["id"], is_tvshow)
 
                 try:

@@ -9,6 +9,7 @@ from utils.database import queries, models
 from . import ConnectorClickStrategy
 from ..vlc_player import Player
 
+
 class LocalMovieBrowserModal(tk.Toplevel):
     """Modal window that serves as a browser for local media"""
 
@@ -22,10 +23,10 @@ class LocalMovieBrowserModal(tk.Toplevel):
         metadata_reader = VideoMetadataReader(queries.get_setting_value("LocalFolder"))
         metadata_reader.update_metadata_db()
 
-        self._metadata = queries.get_all_videos()
+        self._metadata_list = queries.get_all_videos()
         self._movie_index = 0
         self._movie_list_length = (
-            len(self._metadata) if self._metadata is not None else 0
+            len(self._metadata_list) if self._metadata_list is not None else 0
         )
 
         # Configure
@@ -44,7 +45,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self._movie_card = LocalMovieCard(
             self,
             self._config_params["LocalMovieCard"],
-            self._metadata[self._movie_index],
+            self._metadata_list[self._movie_index],
             self.winfo_screenheight(),
             self.winfo_screenwidth(),
         )
@@ -60,7 +61,7 @@ class LocalMovieBrowserModal(tk.Toplevel):
         )
 
         # Bindings
-        if len(self._metadata) > 1:
+        if len(self._metadata_list) > 1:
             self.bind_all("<Button-4>", self._on_mousewheel)
             self.bind_all("<Button-5>", self._on_mousewheel)
             self.bind_all("<Up>", self._on_mousewheel)
@@ -97,11 +98,12 @@ class LocalMovieBrowserModal(tk.Toplevel):
             else:
                 return
 
+        # TODO: After I finish carousel, make this functionality part of LocalMovieCard
         self._movie_card.destroy()
         self._movie_card = LocalMovieCard(
             self,
             self._config_params["LocalMovieCard"],
-            self._metadata[self._movie_index],
+            self._metadata_list[self._movie_index],
             self.winfo_screenheight(),
             self.winfo_screenwidth(),
         )
@@ -109,8 +111,23 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self._movie_card.pack_propagate(False)
 
 
+class Poster(tk.Label):
+    """Label widget that holds the poster image of a movie."""
+
+    def __init__(
+        self,
+        parent: tk.Widget,
+        config_params: dict,
+        metadata: models.VideoMetadata,
+        height: int,
+        width: int,
+    ):
+        self._poster_image = metadata.get_image_object(width, height)
+        super().__init__(parent, image=self._poster_image, **config_params)
+
+
 class LocalMovieCard(tk.Frame):
-    """Card that hold meta information about the movie, poster / screenshot and the play button"""
+    """Card that holds meta information about the movie, poster / screenshot and the play button"""
 
     def __init__(
         self,
@@ -133,7 +150,6 @@ class LocalMovieCard(tk.Frame):
         entries_left_padx = math.floor(width * 0.02)
         title_pad = math.floor(height * 0.02)
 
-        # TODO : Widget components
         self._genres = tk.Label(
             self,
             text=f"{' | '.join(metadata.tmdb_genres)}",
@@ -146,11 +162,12 @@ class LocalMovieCard(tk.Frame):
 
         poster_height = poster_frame_height - (title_pad * 2)
         poster_width = poster_frame_width - (title_pad * 2)
-        self._poster_image = metadata.get_image_object(poster_width, poster_height)
-        self._poster = tk.Label(
+        self._poster = Poster(
             self,
-            image=self._poster_image,
-            **self._config_params["Poster"]["Design"],
+            config_params["Poster"]["Design"],
+            self._metadata,
+            poster_height,
+            poster_width,
         )
 
         entries_frame_height = math.floor(height * 0.75)
@@ -284,6 +301,62 @@ class LocalMovieCard(tk.Frame):
             background=(foreground if self._colors_switch else background),
             foreground=(background if self._colors_switch else foreground),
         )
+
+
+class PosterCarousel(tk.Frame):
+    """Poster carousel that sits under the movie cards and previews what's ahead and behind the current selection"""
+
+    def __init__(
+        self,
+        parent: tk.Widget,
+        config_params: dict,
+        metadata_list: list[models.VideoMetadata],
+        height: int,
+        width: int,
+    ):
+        super().__init__(parent)
+        self._parent = parent
+        self._metadata_list = metadata_list
+        self._height = height
+        self._width = width
+
+        # Configure
+        self._config_params = copy.deepcopy(config_params)
+        self.configure(height=height, width=width, **self._config_params["Design"])
+
+        # Sliding Window
+        self._start = 0
+        self._end = math.min(8, len(self._metadata_list) - 1)
+
+        # The UI
+        self._poster_list = []
+        self._update_posters()
+
+    def move_right(self) -> None:
+        """Moves the sliding window to the right with 1 poster"""
+        if self._end == len(self._metadata_list) - 1:
+            return
+
+        self._start += 1
+        self._end += 1
+        self._update_posters()
+
+    def move_left(self) -> None:
+        """Moves the sliding window to the left with 1 poster"""
+        if self._start == 0:
+            return
+
+        self._start -= 1
+        self._end -= 1
+        self._update_posters()
+
+    def _update_posters(self) -> None:
+        for idx in range(self._start, self._end + 1):
+            pass
+
+        
+
+
 
 
 class LocalConnectorClick(ConnectorClickStrategy):
