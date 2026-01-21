@@ -304,7 +304,10 @@ class LocalMovieCard(tk.Frame):
 
 
 class PosterCarousel(tk.Frame):
-    """Poster carousel that sits under the movie cards and previews what's ahead and behind the current selection"""
+    """Poster carousel that sits under the movie cards and previews what's ahead and behind the current selection
+    
+        Make sure **poster_count** is always an odd number, otherwise this will break
+    """
 
     def __init__(
         self,
@@ -313,50 +316,76 @@ class PosterCarousel(tk.Frame):
         metadata_list: list[models.VideoMetadata],
         height: int,
         width: int,
+        poster_count: int
     ):
         super().__init__(parent)
         self._parent = parent
         self._metadata_list = metadata_list
         self._height = height
         self._width = width
+        self._poster_count = poster_count
 
         # Configure
         self._config_params = copy.deepcopy(config_params)
         self.configure(height=height, width=width, **self._config_params["Design"])
 
-        # Sliding Window
-        self._start = 0
-        self._end = math.min(8, len(self._metadata_list) - 1)
-
+        # Posters
+        self._visible_posters = [None for _ in range(0, self._poster_count)]
+        self._selected = 0
+        
         # The UI
-        self._poster_list = []
         self._update_posters()
-
-    def move_right(self) -> None:
-        """Moves the sliding window to the right with 1 poster"""
-        if self._end == len(self._metadata_list) - 1:
-            return
-
-        self._start += 1
-        self._end += 1
-        self._update_posters()
-
-    def move_left(self) -> None:
-        """Moves the sliding window to the left with 1 poster"""
-        if self._start == 0:
-            return
-
-        self._start -= 1
-        self._end -= 1
-        self._update_posters()
-
+        self._show_posters()
+    
     def _update_posters(self) -> None:
-        for idx in range(self._start, self._end + 1):
+        """Updates the posters list, it adds the posters around the _selected if there are any, else leaves it empty
+        """
+        start = self._selected - self._poster_count // 2
+        end = self._selected + self._poster_count // 2 + 1
+        
+        for poster in self._visible_posters:
+            poster.destroy()
+        self._visible_posters.clear()
+        
+        posters_idx = 0
+        for metadata_idx in range(start, end):
+            self._visible_posters[posters_idx] = None
+            if metadata_idx > 0 and metadata_idx < len(self._metadata_list):
+                poster = Poster(
+                    parent=self,
+                    config_params=self._config_params["Poster"]["Design"],
+                    metadata=self._metadata_list[metadata_idx],
+                    height=self._height,
+                    width=self._width
+                )
+                self._visible_posters[posters_idx] = poster
+            posters_idx += 1
+    
+    def _show_posters(self) -> None:
+        """Iterates the posters list and makes them visible in the UI
+        """
+        for poster in self._visible_posters:
             pass
 
+    def move_right(self) -> None:
+        """Moves the list 1 poster to the right
+        """
+        if self._selected == len(self._metadata_list):
+            return
         
-
-
+        self._selected += 1
+        self._update_posters()
+        self._show_posters()
+        
+    def move_left(self) -> None:
+        """Moves the list 1 poster to the left
+        """
+        if self._selected == 0:
+            return
+        
+        self._selected -= 1
+        self._update_posters()
+        self._show_posters()
 
 
 class LocalConnectorClick(ConnectorClickStrategy):

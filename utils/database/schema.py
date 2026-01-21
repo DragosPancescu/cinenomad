@@ -2,10 +2,10 @@ import os
 
 import sqlite3
 
-
 from .connection import AppDatabase
 from utils.file_handling import load_yaml_file
 from . import queries
+
 
 def create_tables() -> None:
     """Runs SQL query to create the schema"""
@@ -40,7 +40,7 @@ def create_tables() -> None:
                 );
                 """
             )
-            
+
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS setting (
@@ -55,13 +55,14 @@ def create_tables() -> None:
 
 
 def seed_default() -> None:
+    """Seeds the default values in database, mainly settings names"""
     setting_names = load_yaml_file(os.path.join(".", "config", "app_settings.yaml"))
     conn = AppDatabase.get_connection()
     with conn:
         for setting_name in setting_names:
             if queries.get_setting_value(setting_name) is not None:
                 continue
-            
+
             conn.execute(
                 f"""
                 INSERT INTO setting ('name', 'value')
