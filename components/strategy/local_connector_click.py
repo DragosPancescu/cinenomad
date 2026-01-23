@@ -81,8 +81,8 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
         # Bindings
         if len(self._metadata_list) > 1:
-            self.bind_all("<Left>", self._on_mousewheel)
-            self.bind_all("<Right>", self._on_mousewheel)
+            self.bind_all("<Left>", self._on_scroll_movies)
+            self.bind_all("<Right>", self._on_scroll_movies)
 
         self.bind("<Escape>", self.hide)
 
@@ -102,8 +102,8 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.focus()
         self.config(cursor="")
 
-    def _on_mousewheel(self, event) -> None:
-        """Scroll the canvas using left/right arrow keys"""
+    def _on_scroll_movies(self, event) -> None:
+        """Scroll through the movies using left/right arrow keys"""
         if event.keysym == "Left":  # Move left (decrease index)
             if self._movie_index > 0:
                 self._movie_index -= 1
@@ -347,9 +347,15 @@ class PosterCarousel(tk.Frame):
         self.configure(height=height, width=width, **self._config_params["Design"])
 
         # Posters
+        gaps = self._poster_count + 1
+        padding_percent = 0.01
+
         self._visible_posters = [None for _ in range(0, self._poster_count)]
-        self._poster_pad = 10
-        self._poster_width = self._width // self._poster_count - self._poster_pad
+        self._poster_pad = int(self._width * padding_percent)
+        self._poster_width = (
+            self._width - (gaps * self._poster_pad)
+        ) // self._poster_count
+        self._poster_heigh = self._height - self._poster_pad
         self._selected = 0
 
         # The UI
@@ -375,7 +381,7 @@ class PosterCarousel(tk.Frame):
                     parent=self,
                     config_params=self._config_params["Poster"]["Design"],
                     metadata=self._metadata_list[metadata_idx],
-                    height=self._height,
+                    height=self._poster_heigh,
                     width=self._poster_width,
                 )
                 self._visible_posters[posters_idx] = poster
@@ -383,7 +389,7 @@ class PosterCarousel(tk.Frame):
 
         # Put border around currently selected poster
         self._visible_posters[self._poster_count // 2].configure(
-            highlightthickness=1, highlightbackground="#D9D9D9"
+            highlightthickness=3, highlightbackground="#D9D9D9"
         )
 
     def _show_posters(self) -> None:
@@ -391,10 +397,10 @@ class PosterCarousel(tk.Frame):
         for idx, poster in enumerate(self._visible_posters):
             if poster:
                 poster.place(
-                    x=(self._poster_width + self._poster_pad) * idx,
+                    x=(self._poster_width * idx) + self._poster_pad * (idx + 1),
                     y=0,
                     width=self._poster_width,
-                    height=self._height,
+                    height=self._poster_heigh,
                 )
 
     def move_right(self) -> None:
