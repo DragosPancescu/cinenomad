@@ -104,7 +104,6 @@ VersionTag:
     background: "#282828"
     foreground: "#D9D9D9"
   Placement:
-    Placement:
     relx: 1
     rely: 1
     y: -25
@@ -174,9 +173,15 @@ LocalMovieBrowserModal:
         foreground: "#D9D9D9"
         justify: left
         anchor: w
-    Poster:
+    Poster: &poster
       Design:
         borderwidth: 0
+    PosterCarousel:
+      Design:
+        background: "#282828"
+        borderwidth: 0
+      Poster:
+        <<: *poster
     Title:
       Design:
         justify: left

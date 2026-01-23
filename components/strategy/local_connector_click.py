@@ -52,6 +52,25 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self._movie_card.pack(fill="both", expand=True)
         self._movie_card.pack_propagate(False)
 
+        self._poster_carousel = PosterCarousel(
+            self,
+            config_params=self._config_params["LocalMovieCard"]["PosterCarousel"],
+            metadata_list=self._metadata_list,
+            height=math.floor(self.winfo_screenheight() * 0.25),
+            width=self.winfo_screenwidth(),
+            poster_count=9,
+        )
+        self._poster_carousel.place(
+            x=0,
+            y=math.floor(self.winfo_screenheight() * 0.75),
+            width=self.winfo_screenwidth(),
+            height=math.floor(self.winfo_screenheight() * 0.25),
+        )
+
+        # Force update/refresh
+        self.update_idletasks()
+        self.update()
+
         self.close_button = AppControlButton(
             self, self._config_params["LocalMovieBrowserModalCloseButton"]["Design"]
         )
@@ -62,10 +81,8 @@ class LocalMovieBrowserModal(tk.Toplevel):
 
         # Bindings
         if len(self._metadata_list) > 1:
-            self.bind_all("<Button-4>", self._on_mousewheel)
-            self.bind_all("<Button-5>", self._on_mousewheel)
-            self.bind_all("<Up>", self._on_mousewheel)
-            self.bind_all("<Down>", self._on_mousewheel)
+            self.bind_all("<Left>", self._on_mousewheel)
+            self.bind_all("<Right>", self._on_mousewheel)
 
         self.bind("<Escape>", self.hide)
 
@@ -86,17 +103,15 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.config(cursor="")
 
     def _on_mousewheel(self, event) -> None:
-        """Scroll the canvas using the mouse wheel"""
-        if event.num == 4 or event.keysym == "Up":  # Scroll up
+        """Scroll the canvas using left/right arrow keys"""
+        if event.keysym == "Left":  # Move left (decrease index)
             if self._movie_index > 0:
                 self._movie_index -= 1
-            else:
-                return
-        elif event.num == 5 or event.keysym == "Down":  # Scroll down
+                self._poster_carousel.move_left()
+        elif event.keysym == "Right":  # Move right (increase index)
             if self._movie_index < self._movie_list_length - 1:
                 self._movie_index += 1
-            else:
-                return
+                self._poster_carousel.move_right()
 
         # TODO: After I finish carousel, make this functionality part of LocalMovieCard
         self._movie_card.destroy()
@@ -109,6 +124,8 @@ class LocalMovieBrowserModal(tk.Toplevel):
         )
         self._movie_card.pack(fill="both", expand=True)
         self._movie_card.pack_propagate(False)
+
+        self._poster_carousel.lift()
 
 
 class Poster(tk.Label):
@@ -305,8 +322,8 @@ class LocalMovieCard(tk.Frame):
 
 class PosterCarousel(tk.Frame):
     """Poster carousel that sits under the movie cards and previews what's ahead and behind the current selection
-    
-        Make sure **poster_count** is always an odd number, otherwise this will break
+
+    Make sure **poster_count** is always an odd number, otherwise this will break
     """
 
     def __init__(
@@ -316,7 +333,7 @@ class PosterCarousel(tk.Frame):
         metadata_list: list[models.VideoMetadata],
         height: int,
         width: int,
-        poster_count: int
+        poster_count: int,
     ):
         super().__init__(parent)
         self._parent = parent
@@ -331,58 +348,69 @@ class PosterCarousel(tk.Frame):
 
         # Posters
         self._visible_posters = [None for _ in range(0, self._poster_count)]
+        self._poster_pad = 10
+        self._poster_width = self._width // self._poster_count - self._poster_pad
         self._selected = 0
-        
+
         # The UI
         self._update_posters()
         self._show_posters()
-    
+        self.lift()
+
     def _update_posters(self) -> None:
-        """Updates the posters list, it adds the posters around the _selected if there are any, else leaves it empty
-        """
-        start = self._selected - self._poster_count // 2
-        end = self._selected + self._poster_count // 2 + 1
-        
+        """Updates the posters list, it adds the posters around the _selected if there are any, else leaves it empty"""
+        start = self._selected - (self._poster_count // 2)
+        end = self._selected + (self._poster_count // 2) + 1
+
         for poster in self._visible_posters:
-            poster.destroy()
-        self._visible_posters.clear()
-        
+            if poster:
+                poster.destroy()
+        self._visible_posters = [None for _ in range(0, self._poster_count)]
+
         posters_idx = 0
         for metadata_idx in range(start, end):
             self._visible_posters[posters_idx] = None
-            if metadata_idx > 0 and metadata_idx < len(self._metadata_list):
+            if metadata_idx >= 0 and metadata_idx < len(self._metadata_list):
                 poster = Poster(
                     parent=self,
                     config_params=self._config_params["Poster"]["Design"],
                     metadata=self._metadata_list[metadata_idx],
                     height=self._height,
-                    width=self._width
+                    width=self._poster_width,
                 )
                 self._visible_posters[posters_idx] = poster
             posters_idx += 1
-    
+
+        # Put border around currently selected poster
+        self._visible_posters[self._poster_count // 2].configure(
+            highlightthickness=1, highlightbackground="#D9D9D9"
+        )
+
     def _show_posters(self) -> None:
-        """Iterates the posters list and makes them visible in the UI
-        """
-        for poster in self._visible_posters:
-            pass
+        """Iterates the posters list and makes them visible in the UI"""
+        for idx, poster in enumerate(self._visible_posters):
+            if poster:
+                poster.place(
+                    x=(self._poster_width + self._poster_pad) * idx,
+                    y=0,
+                    width=self._poster_width,
+                    height=self._height,
+                )
 
     def move_right(self) -> None:
-        """Moves the list 1 poster to the right
-        """
+        """Moves the list 1 poster to the right"""
         if self._selected == len(self._metadata_list):
             return
-        
+
         self._selected += 1
         self._update_posters()
         self._show_posters()
-        
+
     def move_left(self) -> None:
-        """Moves the list 1 poster to the left
-        """
+        """Moves the list 1 poster to the left"""
         if self._selected == 0:
             return
-        
+
         self._selected -= 1
         self._update_posters()
         self._show_posters()
