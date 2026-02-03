@@ -138,10 +138,20 @@ class Poster(tk.Label):
         metadata: models.VideoMetadata,
         height: int,
         width: int,
+        hoverable=False
     ):
         self._poster_image = metadata.get_image_object(width, height)
         super().__init__(parent, image=self._poster_image, **config_params)
 
+        if hoverable:
+            self.bind("<Enter>", self._on_hover_switch_cursor)
+            self.bind("<Leave>", self._on_hover_switch_cursor)
+
+    def _on_hover_switch_cursor(self, event=None) -> None:
+        if self.cget("cursor") == "":
+            self.config(cursor="hand2")
+        else:
+            self.config(cursor="")
 
 class LocalMovieCard(tk.Frame):
     """Card that holds meta information about the movie, poster / screenshot and the play button"""
@@ -227,13 +237,24 @@ class LocalMovieCard(tk.Frame):
 
         overview_height = math.floor(entries_frame_height * 0.40)
         overview_font_size = max(10, int(overview_height * 0.3 * 0.3))
-        self._overview = tk.Label(
+        # Use Text widget for better text handling
+        self._overview = tk.Text(
             self._entries_frame,
-            text=metadata.tmdb_overview,
+            wrap=tk.WORD,  # Wrap at word boundaries
             font=("Roboto Mono", overview_font_size),
-            wraplength=entries_frame_width - (title_pad * 2),
-            **self._config_params["Overview"]["Design"],
+            height=overview_height,  # Number of lines
+            width=max(1, int((entries_frame_width - (title_pad * 2)) // (overview_font_size * 0.6))),  # Approximate character width
+            padx=5,
+            pady=5,
+            state=tk.DISABLED,  # Make read-only
+            **self._config_params["Overview"]["Design"]
         )
+
+        # Insert text and re-enable for editing
+        self._overview.config(state=tk.NORMAL)
+        self._overview.delete('1.0', tk.END)
+        self._overview.insert('1.0', metadata.tmdb_overview)
+        self._overview.config(state=tk.DISABLED)
 
         play_button_height = math.floor(entries_frame_height * 0.1)
         play_button_width = math.floor(entries_frame_width * 0.35)
@@ -383,8 +404,10 @@ class PosterCarousel(tk.Frame):
                     metadata=self._metadata_list[metadata_idx],
                     height=self._poster_heigh,
                     width=self._poster_width,
+                    hoverable=True
                 )
                 self._visible_posters[posters_idx] = poster
+                self._visible_posters[posters_idx].bind("Click", lambda e: self._poster_on_click(e, metadata_idx))
             posters_idx += 1
 
         # Put border around currently selected poster
@@ -392,16 +415,27 @@ class PosterCarousel(tk.Frame):
             highlightthickness=3, highlightbackground="#D9D9D9"
         )
 
+    def _poster_on_click(self, event, idx: int) -> None:
+        self._selected = idx
+        self._update_posters()
+        self._show_posters()
+
     def _show_posters(self) -> None:
         """Iterates the posters list and makes them visible in the UI"""
         for idx, poster in enumerate(self._visible_posters):
+            # Places the selected poster higher than the rest of the carousel
+            selected_y_padding = self._poster_pad * 0.5
+            if idx == self._poster_count // 2:
+                selected_y_padding = 0
+
             if poster:
                 poster.place(
                     x=(self._poster_width * idx) + self._poster_pad * (idx + 1),
-                    y=0,
+                    y=selected_y_padding,
                     width=self._poster_width,
                     height=self._poster_heigh,
                 )
+                poster.lift()
 
     def move_right(self) -> None:
         """Moves the list 1 poster to the right"""

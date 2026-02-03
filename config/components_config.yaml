@@ -194,9 +194,8 @@ LocalMovieBrowserModal:
         <<: *addMovieSourceModalButtonDesign
     Overview:
       Design:
-        justify: left
-        anchor: w
-        <<: *localMovieCardEntryDesign
+        background: "#282828"
+        foreground: "#D9D9D9"
     Genres:
       Design:
         width: 50
