@@ -8,7 +8,8 @@ import cv2
 import numpy as np
 
 from pymediainfo import MediaInfo
-from langcodes import Language
+from langcodes import Language, LanguageTagError
+from torrent_name_parser import TorrentNameParser as TNP
 
 from utils.file_handling import load_yaml_file
 from utils.database import queries, models
@@ -21,7 +22,6 @@ from .tmdb_utils import (
     search_crew_tmdb_api_call,
     get_tmdb_configuration,
 )
-from utils.torrent_name_parser import TNP
 
 
 class VideoMetadataReader:
@@ -42,9 +42,11 @@ class VideoMetadataReader:
         """
         file_names = []
         try:
-            for file in os.listdir(self._folder_path):
-                if os.path.isfile(os.path.join(self._folder_path, file)):
-                    file_names.append(os.path.join(self._folder_path, file))
+            for dirpath, _, filenames in os.walk(self._folder_path):
+                for file in filenames:
+                    full_path = os.path.join(dirpath, file)
+                    if os.path.isfile(full_path):
+                        file_names.append(full_path)
 
             # Filter using the accepted extensions list
             file_names = [
@@ -73,7 +75,8 @@ class VideoMetadataReader:
 
         # Extract movie name from file_name
         tnp = TNP()
-        movie_name = tnp.parse(file_name)["title"]
+        movie_name = tnp.parse(file_name).title
+        print(movie_name)
 
         season_episode = re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", file_name)
         is_tvshow = bool(season_episode)
@@ -218,7 +221,11 @@ class VideoMetadataReader:
                 "language" in extracted_metadata.keys()
                 and extracted_metadata["language"] != ""
             ):
-                language = Language.get(extracted_metadata["language"]).display_name()
+                try:
+                    language = Language.get(extracted_metadata["language"]).display_name()
+                except LanguageTagError as e:
+                    print(e)
+                    language = extracted_metadata["language"]
             elif tmdb_metadata["original_language"] != "":
                 language = Language.get(
                     tmdb_metadata["original_language"]

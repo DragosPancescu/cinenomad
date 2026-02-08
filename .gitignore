@@ -167,4 +167,4 @@ cython_debug/
 test_video
 resources/movie_posters/*
 db/*
-config/api_keys.yaml
+/config/api_keys.yaml

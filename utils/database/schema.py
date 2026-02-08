@@ -22,12 +22,12 @@ def create_tables() -> None:
                     image_path TEXT NOT NULL,
                     full_path TEXT NOT NULL,
                     full_sub_path TEXT NOT NULL,
-                    tmdb_title TEXT NOT NULL,
+                    tmdb_title TEXT,
                     tmdb_director TEXT,
-                    tmdb_year TEXT NOT NULL,
-                    tmdb_overview TEXT NOT NULL,
-                    tmdb_genres TEXT NOT NULL,
-                    tmdb_poster_path TEXT NOT NULL
+                    tmdb_year TEXT,
+                    tmdb_overview TEXT,
+                    tmdb_genres TEXT,
+                    tmdb_poster_path TEXT
                 );
                 """
             )

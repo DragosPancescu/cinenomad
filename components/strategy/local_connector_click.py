@@ -2,6 +2,8 @@ import copy
 import math
 import tkinter as tk
 
+from functools import partial
+
 from components import AppControlButton
 from utils import VideoMetadataReader
 from utils.database import queries, models
@@ -406,8 +408,8 @@ class PosterCarousel(tk.Frame):
                     width=self._poster_width,
                     hoverable=True
                 )
+                poster.bind("<Button-1>", partial(self._poster_on_click, idx=metadata_idx))
                 self._visible_posters[posters_idx] = poster
-                self._visible_posters[posters_idx].bind("Click", lambda e: self._poster_on_click(e, metadata_idx))
             posters_idx += 1
 
         # Put border around currently selected poster
@@ -439,12 +441,13 @@ class PosterCarousel(tk.Frame):
 
     def move_right(self) -> None:
         """Moves the list 1 poster to the right"""
-        if self._selected == len(self._metadata_list):
+        if self._selected == len(self._metadata_list) - 1:
             return
 
         self._selected += 1
         self._update_posters()
         self._show_posters()
+        
 
     def move_left(self) -> None:
         """Moves the list 1 poster to the left"""
