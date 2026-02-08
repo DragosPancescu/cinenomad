@@ -2,10 +2,10 @@ import os
 
 import sqlite3
 
-
 from .connection import AppDatabase
 from utils.file_handling import load_yaml_file
 from . import queries
+
 
 def create_tables() -> None:
     """Runs SQL query to create the schema"""
@@ -22,12 +22,12 @@ def create_tables() -> None:
                     image_path TEXT NOT NULL,
                     full_path TEXT NOT NULL,
                     full_sub_path TEXT NOT NULL,
-                    tmdb_title TEXT NOT NULL,
+                    tmdb_title TEXT,
                     tmdb_director TEXT,
-                    tmdb_year TEXT NOT NULL,
-                    tmdb_overview TEXT NOT NULL,
-                    tmdb_genres TEXT NOT NULL,
-                    tmdb_poster_path TEXT NOT NULL
+                    tmdb_year TEXT,
+                    tmdb_overview TEXT,
+                    tmdb_genres TEXT,
+                    tmdb_poster_path TEXT
                 );
                 """
             )
@@ -40,7 +40,7 @@ def create_tables() -> None:
                 );
                 """
             )
-            
+
             conn.execute(
                 """
                 CREATE TABLE IF NOT EXISTS setting (
@@ -55,13 +55,14 @@ def create_tables() -> None:
 
 
 def seed_default() -> None:
+    """Seeds the default values in database, mainly settings names"""
     setting_names = load_yaml_file(os.path.join(".", "config", "app_settings.yaml"))
     conn = AppDatabase.get_connection()
     with conn:
         for setting_name in setting_names:
             if queries.get_setting_value(setting_name) is not None:
                 continue
-            
+
             conn.execute(
                 f"""
                 INSERT INTO setting ('name', 'value')

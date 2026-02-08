@@ -2,12 +2,15 @@ import copy
 import math
 import tkinter as tk
 
+from functools import partial
+
 from components import AppControlButton
 from utils import VideoMetadataReader
 from utils.database import queries, models
 
 from . import ConnectorClickStrategy
 from ..vlc_player import Player
+
 
 class LocalMovieBrowserModal(tk.Toplevel):
     """Modal window that serves as a browser for local media"""
@@ -22,10 +25,10 @@ class LocalMovieBrowserModal(tk.Toplevel):
         metadata_reader = VideoMetadataReader(queries.get_setting_value("LocalFolder"))
         metadata_reader.update_metadata_db()
 
-        self._metadata = queries.get_all_videos()
+        self._metadata_list = queries.get_all_videos()
         self._movie_index = 0
         self._movie_list_length = (
-            len(self._metadata) if self._metadata is not None else 0
+            len(self._metadata_list) if self._metadata_list is not None else 0
         )
 
         # Configure
@@ -44,12 +47,31 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self._movie_card = LocalMovieCard(
             self,
             self._config_params["LocalMovieCard"],
-            self._metadata[self._movie_index],
+            self._metadata_list[self._movie_index],
             self.winfo_screenheight(),
             self.winfo_screenwidth(),
         )
         self._movie_card.pack(fill="both", expand=True)
         self._movie_card.pack_propagate(False)
+
+        self._poster_carousel = PosterCarousel(
+            self,
+            config_params=self._config_params["LocalMovieCard"]["PosterCarousel"],
+            metadata_list=self._metadata_list,
+            height=math.floor(self.winfo_screenheight() * 0.25),
+            width=self.winfo_screenwidth(),
+            poster_count=9,
+        )
+        self._poster_carousel.place(
+            x=0,
+            y=math.floor(self.winfo_screenheight() * 0.75),
+            width=self.winfo_screenwidth(),
+            height=math.floor(self.winfo_screenheight() * 0.25),
+        )
+
+        # Force update/refresh
+        self.update_idletasks()
+        self.update()
 
         self.close_button = AppControlButton(
             self, self._config_params["LocalMovieBrowserModalCloseButton"]["Design"]
@@ -60,11 +82,9 @@ class LocalMovieBrowserModal(tk.Toplevel):
         )
 
         # Bindings
-        if len(self._metadata) > 1:
-            self.bind_all("<Button-4>", self._on_mousewheel)
-            self.bind_all("<Button-5>", self._on_mousewheel)
-            self.bind_all("<Up>", self._on_mousewheel)
-            self.bind_all("<Down>", self._on_mousewheel)
+        if len(self._metadata_list) > 1:
+            self.bind_all("<Left>", self._on_scroll_movies)
+            self.bind_all("<Right>", self._on_scroll_movies)
 
         self.bind("<Escape>", self.hide)
 
@@ -84,33 +104,59 @@ class LocalMovieBrowserModal(tk.Toplevel):
         self.focus()
         self.config(cursor="")
 
-    def _on_mousewheel(self, event) -> None:
-        """Scroll the canvas using the mouse wheel"""
-        if event.num == 4 or event.keysym == "Up":  # Scroll up
+    def _on_scroll_movies(self, event) -> None:
+        """Scroll through the movies using left/right arrow keys"""
+        if event.keysym == "Left":  # Move left (decrease index)
             if self._movie_index > 0:
                 self._movie_index -= 1
-            else:
-                return
-        elif event.num == 5 or event.keysym == "Down":  # Scroll down
+                self._poster_carousel.move_left()
+        elif event.keysym == "Right":  # Move right (increase index)
             if self._movie_index < self._movie_list_length - 1:
                 self._movie_index += 1
-            else:
-                return
+                self._poster_carousel.move_right()
 
+        # TODO: After I finish carousel, make this functionality part of LocalMovieCard
         self._movie_card.destroy()
         self._movie_card = LocalMovieCard(
             self,
             self._config_params["LocalMovieCard"],
-            self._metadata[self._movie_index],
+            self._metadata_list[self._movie_index],
             self.winfo_screenheight(),
             self.winfo_screenwidth(),
         )
         self._movie_card.pack(fill="both", expand=True)
         self._movie_card.pack_propagate(False)
 
+        self._poster_carousel.lift()
+
+
+class Poster(tk.Label):
+    """Label widget that holds the poster image of a movie."""
+
+    def __init__(
+        self,
+        parent: tk.Widget,
+        config_params: dict,
+        metadata: models.VideoMetadata,
+        height: int,
+        width: int,
+        hoverable=False
+    ):
+        self._poster_image = metadata.get_image_object(width, height)
+        super().__init__(parent, image=self._poster_image, **config_params)
+
+        if hoverable:
+            self.bind("<Enter>", self._on_hover_switch_cursor)
+            self.bind("<Leave>", self._on_hover_switch_cursor)
+
+    def _on_hover_switch_cursor(self, event=None) -> None:
+        if self.cget("cursor") == "":
+            self.config(cursor="hand2")
+        else:
+            self.config(cursor="")
 
 class LocalMovieCard(tk.Frame):
-    """Card that hold meta information about the movie, poster / screenshot and the play button"""
+    """Card that holds meta information about the movie, poster / screenshot and the play button"""
 
     def __init__(
         self,
@@ -133,7 +179,6 @@ class LocalMovieCard(tk.Frame):
         entries_left_padx = math.floor(width * 0.02)
         title_pad = math.floor(height * 0.02)
 
-        # TODO : Widget components
         self._genres = tk.Label(
             self,
             text=f"{' | '.join(metadata.tmdb_genres)}",
@@ -146,11 +191,12 @@ class LocalMovieCard(tk.Frame):
 
         poster_height = poster_frame_height - (title_pad * 2)
         poster_width = poster_frame_width - (title_pad * 2)
-        self._poster_image = metadata.get_image_object(poster_width, poster_height)
-        self._poster = tk.Label(
+        self._poster = Poster(
             self,
-            image=self._poster_image,
-            **self._config_params["Poster"]["Design"],
+            config_params["Poster"]["Design"],
+            self._metadata,
+            poster_height,
+            poster_width,
         )
 
         entries_frame_height = math.floor(height * 0.75)
@@ -193,13 +239,24 @@ class LocalMovieCard(tk.Frame):
 
         overview_height = math.floor(entries_frame_height * 0.40)
         overview_font_size = max(10, int(overview_height * 0.3 * 0.3))
-        self._overview = tk.Label(
+        # Use Text widget for better text handling
+        self._overview = tk.Text(
             self._entries_frame,
-            text=metadata.tmdb_overview,
+            wrap=tk.WORD,  # Wrap at word boundaries
             font=("Roboto Mono", overview_font_size),
-            wraplength=entries_frame_width - (title_pad * 2),
-            **self._config_params["Overview"]["Design"],
+            height=overview_height,  # Number of lines
+            width=max(1, int((entries_frame_width - (title_pad * 2)) // (overview_font_size * 0.6))),  # Approximate character width
+            padx=5,
+            pady=5,
+            state=tk.DISABLED,  # Make read-only
+            **self._config_params["Overview"]["Design"]
         )
+
+        # Insert text and re-enable for editing
+        self._overview.config(state=tk.NORMAL)
+        self._overview.delete('1.0', tk.END)
+        self._overview.insert('1.0', metadata.tmdb_overview)
+        self._overview.config(state=tk.DISABLED)
 
         play_button_height = math.floor(entries_frame_height * 0.1)
         play_button_width = math.floor(entries_frame_width * 0.35)
@@ -284,6 +341,122 @@ class LocalMovieCard(tk.Frame):
             background=(foreground if self._colors_switch else background),
             foreground=(background if self._colors_switch else foreground),
         )
+
+
+class PosterCarousel(tk.Frame):
+    """Poster carousel that sits under the movie cards and previews what's ahead and behind the current selection
+
+    Make sure **poster_count** is always an odd number, otherwise this will break
+    """
+
+    def __init__(
+        self,
+        parent: tk.Widget,
+        config_params: dict,
+        metadata_list: list[models.VideoMetadata],
+        height: int,
+        width: int,
+        poster_count: int,
+    ):
+        super().__init__(parent)
+        self._parent = parent
+        self._metadata_list = metadata_list
+        self._height = height
+        self._width = width
+        self._poster_count = poster_count
+
+        # Configure
+        self._config_params = copy.deepcopy(config_params)
+        self.configure(height=height, width=width, **self._config_params["Design"])
+
+        # Posters
+        gaps = self._poster_count + 1
+        padding_percent = 0.01
+
+        self._visible_posters = [None for _ in range(0, self._poster_count)]
+        self._poster_pad = int(self._width * padding_percent)
+        self._poster_width = (
+            self._width - (gaps * self._poster_pad)
+        ) // self._poster_count
+        self._poster_heigh = self._height - self._poster_pad
+        self._selected = 0
+
+        # The UI
+        self._update_posters()
+        self._show_posters()
+        self.lift()
+
+    def _update_posters(self) -> None:
+        """Updates the posters list, it adds the posters around the _selected if there are any, else leaves it empty"""
+        start = self._selected - (self._poster_count // 2)
+        end = self._selected + (self._poster_count // 2) + 1
+
+        for poster in self._visible_posters:
+            if poster:
+                poster.destroy()
+        self._visible_posters = [None for _ in range(0, self._poster_count)]
+
+        posters_idx = 0
+        for metadata_idx in range(start, end):
+            self._visible_posters[posters_idx] = None
+            if metadata_idx >= 0 and metadata_idx < len(self._metadata_list):
+                poster = Poster(
+                    parent=self,
+                    config_params=self._config_params["Poster"]["Design"],
+                    metadata=self._metadata_list[metadata_idx],
+                    height=self._poster_heigh,
+                    width=self._poster_width,
+                    hoverable=True
+                )
+                poster.bind("<Button-1>", partial(self._poster_on_click, idx=metadata_idx))
+                self._visible_posters[posters_idx] = poster
+            posters_idx += 1
+
+        # Put border around currently selected poster
+        self._visible_posters[self._poster_count // 2].configure(
+            highlightthickness=3, highlightbackground="#D9D9D9"
+        )
+
+    def _poster_on_click(self, event, idx: int) -> None:
+        self._selected = idx
+        self._update_posters()
+        self._show_posters()
+
+    def _show_posters(self) -> None:
+        """Iterates the posters list and makes them visible in the UI"""
+        for idx, poster in enumerate(self._visible_posters):
+            # Places the selected poster higher than the rest of the carousel
+            selected_y_padding = self._poster_pad * 0.5
+            if idx == self._poster_count // 2:
+                selected_y_padding = 0
+
+            if poster:
+                poster.place(
+                    x=(self._poster_width * idx) + self._poster_pad * (idx + 1),
+                    y=selected_y_padding,
+                    width=self._poster_width,
+                    height=self._poster_heigh,
+                )
+                poster.lift()
+
+    def move_right(self) -> None:
+        """Moves the list 1 poster to the right"""
+        if self._selected == len(self._metadata_list) - 1:
+            return
+
+        self._selected += 1
+        self._update_posters()
+        self._show_posters()
+        
+
+    def move_left(self) -> None:
+        """Moves the list 1 poster to the left"""
+        if self._selected == 0:
+            return
+
+        self._selected -= 1
+        self._update_posters()
+        self._show_posters()
 
 
 class LocalConnectorClick(ConnectorClickStrategy):

@@ -166,5 +166,5 @@ cython_debug/
 **/.vscode/
 test_video
 resources/movie_posters/*
-settings/api_keys.yaml
 db/*
+/config/api_keys.yaml

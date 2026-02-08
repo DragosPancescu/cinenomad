@@ -36,7 +36,7 @@ class VideoMetadata:
             + time_obj.second
             + time_obj.microsecond / 1_000_000
         )
-        
+
     def get_length_mins(self) -> int:
         """Methods that returns the video length in minutes
 
@@ -84,9 +84,7 @@ class VideoMetadata:
             Optional[ImageTk.PhotoImage]: ImageTk image object easy to embbed in the GUI
         """
         if os.path.exists(self.image_path):
-            image = Image.open(self.image_path).resize(
-                (width, height), Image.LANCZOS
-            )
+            image = Image.open(self.image_path).resize((width, height), Image.LANCZOS)
             return ImageTk.PhotoImage(image)
         return None
 
@@ -102,6 +100,6 @@ class Connector:
 @dataclass()
 class Setting:
     """Model class for the application settings that can be accessed by the user"""
-    
+
     name: str
     value: str
