@@ -49,9 +49,6 @@ NewConnectorButton:
     height: 2
     relief: sunken
     cursor: hand2
-    font:
-      - Roboto Mono
-      - 12
   Placement:
     relx: 0.5
     rely: 0.5
@@ -69,9 +66,8 @@ ConnectorIcon:
     cursor: hand2
     background: "#282828"
     activebackground: "#282828"
-    font:
-      - Roboto Mono
-      - 12
+  FallbackDesign:
+    foreground: "#D9D9D9"
   Placement:
     row: 0
     padx: 25
@@ -80,9 +76,6 @@ ConnectorLabel:
   Design:
     background: "#282828"
     foreground: "#D9D9D9"
-    font:
-      - Roboto Mono
-      - 12
   Placement:
     row: 1
     padx: 25
@@ -104,11 +97,11 @@ VersionTag:
     background: "#282828"
     foreground: "#D9D9D9"
   Placement:
-    relx: 1
+    relx: 0
     rely: 1
-    y: -25
-    x: -65
-    anchor: center
+    x: 15
+    y: -15
+    anchor: sw
 
 AddMovieSourceModal:
   title: "Add new movie source"
@@ -145,6 +138,36 @@ AddMovieSourceModal:
       x: 40
       <<: *addMovieSourceModalButtonPlacement
 
+ConfirmationModal:
+  title: "Confirm"
+  Design:
+    background: "#282828"
+    highlightthickness: 1
+    highlightbackground: "#D9D9D9"
+  Message:
+    foreground: "#D9D9D9"
+    background: "#282828"
+  YesButton:
+    text: "Yes"
+    Design:
+      <<: *addMovieSourceModalButtonDesign
+    Placement:
+      relx: 0.5
+      rely: 0.5
+      anchor: center
+      x: -50
+      y: 50
+  NoButton:
+    text: "No"
+    Design:
+      <<: *addMovieSourceModalButtonDesign
+    Placement:
+      relx: 0.5
+      rely: 0.5
+      anchor: center
+      x: 50
+      y: 50
+
 LocalMovieBrowserModal:
   title: "Browse Local"
   Design:
@@ -162,8 +185,17 @@ LocalMovieBrowserModal:
   Frame:
     Design:
       background: "#282828"
-  LocalMovieBrowserModalCloseButton: 
+  LocalMovieBrowserModalCloseButton:
     <<: *closebutton
+  EmptyStateLabel:
+    Design:
+      foreground: "#D9D9D9"
+      background: "#282828"
+      justify: center
+    Placement:
+      relx: 0.5
+      rely: 0.5
+      anchor: center
   LocalMovieCard:
     Design:
       background: "#282828"
@@ -227,7 +259,58 @@ LocalMovieBrowserModal:
             button_color: "#282828"
             hover: false
         
-NetflixBrowserModal:
+SettingsButton:
+  Design:
+    width: 40
+    height: 40
+    image_path: resources/Settings_Button.png
+    <<: *appcontrolbutton
+  Placement:
+    relx: 1
+    rely: 1
+    x: -35
+    y: -35
+    anchor: se
+
+SettingsModal:
+  title: "Settings"
+  Design:
+    background: "#282828"
+    highlightthickness: 1
+    highlightbackground: "#D9D9D9"
+  Label:
+    Design:
+      background: "#282828"
+      foreground: "#D9D9D9"
+      anchor: w
+  Entry:
+    Design:
+      background: "#3C3C3C"
+      foreground: "#D9D9D9"
+      insertbackground: "#D9D9D9"
+      relief: flat
+  SaveButton:
+    text: "Save"
+    Design:
+      <<: *addMovieSourceModalButtonDesign
+    Placement:
+      relx: 0.5
+      rely: 1
+      y: -30
+      x: -40
+      anchor: center
+  CancelButton:
+    text: "Cancel"
+    Design:
+      <<: *addMovieSourceModalButtonDesign
+    Placement:
+      relx: 0.5
+      rely: 1
+      y: -30
+      x: 40
+      anchor: center
+
+WebBrowserModal:
   title: "Browse Netflix"
   Design:
     background: "#282828"

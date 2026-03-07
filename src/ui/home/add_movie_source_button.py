@@ -1,20 +1,20 @@
 import copy
 import tkinter as tk
 
+from utils.events import MouseEvent
+
 
 class AddMovieSourceButton(tk.Button):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
         self._config_params = copy.deepcopy(config_params)
 
-        # Transform list to tuple
-        self._config_params["font"] = tuple(self._config_params["font"])
         self.configure(**self._config_params)
 
         # Controls
         self._colors_switch = False
-        self.bind("<Enter>", self._on_hover_switch_colors)
-        self.bind("<Leave>", self._on_hover_switch_colors)
+        self.bind(MouseEvent.ENTER, self._on_hover_switch_colors)
+        self.bind(MouseEvent.LEAVE, self._on_hover_switch_colors)
 
     def _on_hover_switch_colors(self, event=None) -> None:
         self._colors_switch = not self._colors_switch

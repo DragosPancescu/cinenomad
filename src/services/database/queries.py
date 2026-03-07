@@ -35,7 +35,7 @@ def insert_video(metadata: VideoMetadata) -> None:
     conn.commit()
 
 
-def get_all_videos() -> list[VideoMetadata] | None:
+def get_all_videos() -> list[VideoMetadata]:
     """Retrieves all the video's metadatas from the database
 
     Returns:
@@ -53,10 +53,10 @@ def get_all_videos() -> list[VideoMetadata] | None:
     )
 
     rows = cursor.fetchall()
-    if rows is None:
+    if not rows:
         print("Could not find any videos")
-        return None
-    
+        return []
+
     all_videos_list = []
     for row in rows:
         all_videos_list.append(
@@ -154,7 +154,7 @@ def get_connectors() -> list[Connector] | None:
     )
 
     rows = cursor.fetchall()
-    if rows is None:
+    if not rows:
         print("Could not find any connectors")
         return None
     
@@ -210,12 +210,12 @@ def get_all_settings() -> list[Setting] | None:
     cursor.execute(
         """
         SELECT *
-        FROM settings;
+        FROM setting;
         """
     )
 
     rows = cursor.fetchall()
-    if rows is None:
+    if not rows:
         print("Could not find any settings")
         return None
     
@@ -228,3 +228,22 @@ def get_all_settings() -> list[Setting] | None:
             )
         )
     return settings
+
+
+def update_setting_value(name: str, value: str) -> None:
+    """Updates a setting's value
+
+    Args:
+        name (str): Name of the setting
+        value (str): New value for the setting
+    """
+    conn = AppDatabase.get_connection()
+    conn.execute(
+        """
+        UPDATE setting
+        SET value = ?
+        WHERE name = ?;
+        """,
+        [value, name],
+    )
+    conn.commit()

@@ -1,8 +1,11 @@
 import copy
 import tkinter as tk
 
+from utils.events import KeyEvent
+from ..common.centerable_toplevel import CenterableToplevel
 
-class AddMovieSourceModal(tk.Toplevel):
+
+class AddMovieSourceModal(CenterableToplevel):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
         self._parent = parent
@@ -17,7 +20,7 @@ class AddMovieSourceModal(tk.Toplevel):
         self.focus()
 
         # Controls
-        self.bind("<Escape>", self.close)
+        self.bind(KeyEvent.ESCAPE, self.close)
 
         # Widgets
         self._init_widgets()
@@ -31,27 +34,6 @@ class AddMovieSourceModal(tk.Toplevel):
         else:
             print("Cancel new movie source")
         self.close()
-
-    def _center(self) -> None:
-        self._parent.update_idletasks()
-        self.update_idletasks()
-
-        # Get frame dimensions and position
-        frame_width = self._parent.winfo_width()
-        frame_height = self._parent.winfo_height()
-        frame_x = self._parent.winfo_rootx()
-        frame_y = self._parent.winfo_rooty()
-
-        # Get toplevel dimensions
-        toplevel_width = self.winfo_width()
-        toplevel_height = self.winfo_height()
-
-        # Calculate coordinates to center the toplevel within the frame
-        x = frame_x + (frame_width // 2) - (toplevel_width // 2)
-        y = frame_y + (frame_height // 2) - (toplevel_height // 2)
-
-        # Position the toplevel window
-        self.geometry(f"{toplevel_width}x{toplevel_height}+{x}+{y}")
 
     def _init_widgets(self) -> None:
         add_button = tk.Button(
@@ -73,7 +55,3 @@ class AddMovieSourceModal(tk.Toplevel):
             **self._config_params["CancelButton"]["Design"],
         )
         cancel_button.place(**self._config_params["CancelButton"]["Placement"])
-
-    def close(self, event=None) -> None:
-        self.withdraw()
-        self._parent.focus()

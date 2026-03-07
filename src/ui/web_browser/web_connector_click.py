@@ -4,13 +4,15 @@ import tkinter as tk
 
 from utils.chrome import open_chrome, close_chrome
 from utils.file_handling import load_yaml_file
-from . import ConnectorClickStrategy
+from utils.events import KeyEvent
+from ui.common.connector_click_strategy import ConnectorClickStrategy
 
 
-class NetflixBrowserModal(tk.Toplevel):
-    def __init__(self, parent: tk.Widget, config_params: dict):
+class WebBrowserModal(tk.Toplevel):
+    def __init__(self, parent: tk.Widget, config_params: dict, url: str):
         super().__init__(parent)
         self._parent = parent
+        self._url = url
         self.withdraw()  # Init in closed state
 
         self._config_params = copy.deepcopy(config_params)
@@ -25,12 +27,11 @@ class NetflixBrowserModal(tk.Toplevel):
         self.geometry(f"{self.winfo_screenwidth()}x{self.winfo_screenheight()}+0+0")
 
         # Controls
-        self.bind("<Escape>", self.close)
+        self.bind(KeyEvent.ESCAPE, self.close)
 
         self._args = load_yaml_file(os.path.join(".", "config", "chrome_process_config.yaml"))
         self._profile = "Default"
         self._process = None
-    
 
     def close(self, event=None) -> None:
         close_chrome(self._process)
@@ -38,17 +39,17 @@ class NetflixBrowserModal(tk.Toplevel):
         self.destroy()
 
     def show(self) -> None:
-        self._chrome_process = open_chrome(
-            "https://www.netflix.com", self._profile, *self._args
-        )
+        self._process = open_chrome(self._url, self._profile, *self._args)
 
-class NetflixConnectorClick(ConnectorClickStrategy):
-    def __init__(self, parent: tk.Widget, config_params: dict):
+
+class WebConnectorClick(ConnectorClickStrategy):
+    def __init__(self, parent: tk.Widget, config_params: dict, url: str):
         self._parent = parent
         self._config_params = copy.deepcopy(config_params)
+        self._url = url
         self._window = None
 
     def execute(self) -> None:
         if self._window is None:
-            self._window = NetflixBrowserModal(self._parent, self._config_params)
+            self._window = WebBrowserModal(self._parent, self._config_params, self._url)
         self._window.show()

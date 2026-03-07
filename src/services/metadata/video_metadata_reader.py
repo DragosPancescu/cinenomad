@@ -1,6 +1,7 @@
 import os
 import re
 import copy
+import base64
 
 from datetime import datetime
 
@@ -12,9 +13,9 @@ from langcodes import Language, LanguageTagError
 from torrent_name_parser import TorrentNameParser as TNP
 
 from utils.file_handling import load_yaml_file
-from utils.database import queries, models
-from .exceptions import FolderNotFoundException
-from .tmdb_utils import (
+from services.database import queries, models
+from utils.exceptions import FolderNotFoundException
+from .tmdb_api import (
     search_movie_tmbd_api_call,
     get_tmdb_metadata,
     get_movie_details_api_call,
@@ -145,15 +146,42 @@ class VideoMetadataReader:
 
         return metadata
 
-    # TODO: Find a way to get nice screenshots (Get metadata frame for screenshot)
-    def _get_video_file_screenshot(self, video_file_path: str) -> np.ndarray | None:
-        """Uses OpenCV to get local video file sneek peak screenshot for the UI:
+    def _get_embedded_thumbnail(self, video_file_path: str) -> np.ndarray | None:
+        """Attempts to extract an embedded cover image from the video file via MediaInfo.
+
+        Args:
+            video_file_path (str): Path to the video file
+
+        Returns:
+            numpy.ndarray | None: The decoded image as an RGB array, or None if not available
+        """
+        media_info = MediaInfo.parse(video_file_path, cover_data=True)
+        general_track = next(
+            (t for t in media_info.tracks if t.track_type == "General"), None
+        )
+        if general_track is None:
+            return None
+
+        cover_data = getattr(general_track, "cover_data", None)
+        if not cover_data:
+            return None
+
+        raw_bytes = base64.b64decode(cover_data)
+        image_array = np.frombuffer(raw_bytes, dtype=np.uint8)
+        image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+        if image is None:
+            return None
+
+        return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+    def _get_video_frame_screenshot(self, video_file_path: str) -> np.ndarray | None:
+        """Uses OpenCV to capture a frame from the video as a fallback screenshot.
 
         Args:
             video_file_path (str): Path to the video file to extract the screenshot from
 
         Returns:
-            numpy.ndarray: Ready to be used in a widget
+            numpy.ndarray | None: The captured frame as an RGB array, or None on failure
         """
         video = cv2.VideoCapture(video_file_path)
         if not video.isOpened():
@@ -175,25 +203,35 @@ class VideoMetadataReader:
             print(f"Could not get screenshot of: {video_file_path}")
             return None
 
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        return frame
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    # TODO: Calculate set() difference and iterate through that to get the lists
+    def _get_video_file_screenshot(self, video_file_path: str) -> np.ndarray | None:
+        """Gets a preview image for a video file.
+
+        Tries embedded thumbnail first, falls back to capturing a video frame.
+
+        Args:
+            video_file_path (str): Path to the video file
+
+        Returns:
+            numpy.ndarray | None: The image as an RGB array, or None on failure
+        """
+        return (
+            self._get_embedded_thumbnail(video_file_path)
+            or self._get_video_frame_screenshot(video_file_path)
+        )
+
     def update_metadata_db(self) -> None:
         db_metadata_list = queries.get_all_videos()
-        db_full_paths = [db_metadata.full_path for db_metadata in db_metadata_list]
+        db_full_paths = {db_metadata.full_path for db_metadata in db_metadata_list}
+        folder_paths = set(self._file_names)
 
         # Remove metadata from the database that is not in the folder
-        for db_full_path in db_full_paths:
-            if not db_full_path in self._file_names:
-                queries.delete_video_by_path(db_full_path)
-                print(f"Deleted: {db_full_path} from database")
+        for stale_path in db_full_paths - folder_paths:
+            queries.delete_video_by_path(stale_path)
+            print(f"Deleted: {stale_path} from database")
 
-        for file_name in self._file_names:
-            # If video metadata already exists
-            if file_name in db_full_paths:
-                continue
-            
+        for file_name in folder_paths - db_full_paths:
             # Get file name without extension
             file_name_no_ext = os.path.splitext(os.path.basename(file_name))[0]
             

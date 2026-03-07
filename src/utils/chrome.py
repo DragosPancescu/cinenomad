@@ -32,7 +32,7 @@ def open_chrome(url: str, profile: str, *args) -> subprocess.Popen | None:
         # Run the command and return the process
         process = subprocess.Popen(command, start_new_session=True)
         return process
-    except FileNotFoundError:
+    except FileNotFoundError as exception:
         print(f"Chrome is not installed: {exception}")
     except subprocess.CalledProcessError as exception:
         print(f"Failed to open Chrome: {exception}")

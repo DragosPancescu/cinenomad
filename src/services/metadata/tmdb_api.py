@@ -105,7 +105,7 @@ def get_movie_details_api_call(tmdb_id: str, is_tvshow: bool) -> dict[str, Any]:
 
         if response.status_code != 200:
             print(
-                f"Failed to get details for id: {id}. HTTP status code: {response.status_code}"
+                f"Failed to get details for id: {tmdb_id}. HTTP status code: {response.status_code}"
             )
             print(response.text)
             return None
@@ -114,7 +114,7 @@ def get_movie_details_api_call(tmdb_id: str, is_tvshow: bool) -> dict[str, Any]:
         return response_dict
     except Exception as exception:
         print(
-            f"Encountered unexpected exception while trying to search details for id: {id}. Exception: {exception}"
+            f"Encountered unexpected exception while trying to search details for id: {tmdb_id}. Exception: {exception}"
         )
     return None
     

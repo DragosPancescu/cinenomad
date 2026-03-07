@@ -1,26 +1,23 @@
 import platform
 import subprocess
 import tkinter as tk
+import tkinter.font as tkfont
+from importlib.metadata import version, PackageNotFoundError
 
 from tk_alert import AlertGenerator
 
-from components import (
-    AppControlButton,
-    AddMovieSourceButton,
-    ConnectorIcon,
-    ConnectorLabel,
-    ConnectorsFrame,
-    AddMovieSourceModal,
-)
-from utils.file_handling import load_yaml_file
-from utils.database import queries
+from .common.app_control_button import AppControlButton
+from .common.confirmation_modal import ConfirmationModal
+from .common.connector_click_strategy import ConnectorClickStrategy
+from .home.add_movie_source_button import AddMovieSourceButton
+from .home.add_movie_source_modal import AddMovieSourceModal
+from .home.connector import ConnectorIcon, ConnectorLabel, ConnectorsFrame
+from .home.settings_modal import SettingsModal
+from .local_browser import LocalConnectorClick
+from .web_browser import WebConnectorClick
 
-from .strategy import (
-    ConnectorClickStrategy,
-    NetflixConnectorClick,
-    LocalConnectorClick,
-    YoutubeConnectorClick
-)
+from services.database import queries
+from utils.file_handling import load_yaml_file
 
 
 class App(tk.Tk):
@@ -28,6 +25,9 @@ class App(tk.Tk):
 
     def __init__(self, config_path: str):
         super().__init__()
+
+        for font_name in tkfont.names():
+            tkfont.nametofont(font_name).configure(family="Roboto Mono")
 
         ####### Configure #######
         self._configs = load_yaml_file(config_path)
@@ -82,15 +82,36 @@ class App(tk.Tk):
         )
         self.new_connector_modal.withdraw() # Keep it hidden
 
+        # Settings button
+        self.settings_button = AppControlButton(
+            self, self._configs["SettingsButton"]["Design"]
+        )
+        self.settings_button.configure(command=self.show_settings_modal)
+        self.settings_button.place(**self._configs["SettingsButton"]["Placement"])
+
+        # Settings modal (toplevel)
+        self.settings_modal = SettingsModal(self, self._configs["SettingsModal"])
+        self.settings_modal.withdraw()
+
         # Version tag
+        try:
+            app_version = f"v{version('cinenomad')}"
+        except PackageNotFoundError:
+            app_version = "dev"
         self.version_tag = tk.Label(
-            self, text="v0.0.2.a", **self._configs["VersionTag"]["Design"]
+            self, text=app_version, **self._configs["VersionTag"]["Design"]
         )
         self.version_tag.place(**self._configs["VersionTag"]["Placement"])
 
     def show_add_local_folder_path(self) -> None:
         pass
     
+    def show_settings_modal(self) -> None:
+        """Opens the settings modal with current values from the database."""
+        self.settings_modal.refresh()
+        self.settings_modal.deiconify()
+        self.settings_modal.focus()
+
     def show_add_new_connector_modal(self) -> None:
         """Makes the 'Add new connector modal' visible and brings the focus to it."""
         self.new_connector_modal.deiconify()
@@ -100,7 +121,7 @@ class App(tk.Tk):
         for idx, connector in enumerate(self._connector_data):
             connector_button = ConnectorIcon(
                 self.connectors_frame,
-                self._configs["ConnectorIcon"]["Design"],
+                self._configs["ConnectorIcon"],
                 connector.icon_path,
                 connector.name,
                 self._get_strategy_for_connector(  # Inject click strategy
@@ -122,11 +143,11 @@ class App(tk.Tk):
 
     def _get_strategy_for_connector(self, name: str) -> ConnectorClickStrategy | None:
         if name == "Netflix":
-            return NetflixConnectorClick(self, self._configs["NetflixBrowserModal"])
+            return WebConnectorClick(self, self._configs["WebBrowserModal"], "https://www.netflix.com")
         if name == "Local":
             return LocalConnectorClick(self, self._configs["LocalMovieBrowserModal"])
         if name == "Youtube":
-            return YoutubeConnectorClick(self, self._configs["NetflixBrowserModal"])
+            return WebConnectorClick(self, self._configs["WebBrowserModal"], "https://www.youtube.com")
         return None
 
     def close(self, event=None) -> None:
@@ -135,10 +156,15 @@ class App(tk.Tk):
         Args:
             event (n/a, optional): Event sent by the event handler in Tkinter. Defaults to None.
         """
+        modal = ConfirmationModal(self, "Are you sure you want to shut down?", self._configs["ConfirmationModal"])
+        self.wait_window(modal)
+        if not modal.result:
+            return
+
         print("App closed.")
         self.quit()
         self.destroy()
-        
+
         if platform.system() == "Windows":
             subprocess.run(["shutdown", "/s", "/t", "0"], check=False)
         else:

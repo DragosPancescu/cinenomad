@@ -1,11 +1,15 @@
 import os
+import sys
 import ctypes
 
 import platform
 
-from components import App
+# Ensure src/ is on the path when running this file directly
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from ui import App
 from utils import set_proc_name
-from utils.database import schema
+from services.database import schema
 from utils.file_handling import load_yaml_file
 
 
