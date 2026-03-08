@@ -9,6 +9,7 @@ class AddMovieSourceModal(CenterableToplevel):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
         self._parent = parent
+        self.withdraw()
 
         # Configure
         self._config_params = copy.deepcopy(config_params)
@@ -24,9 +25,6 @@ class AddMovieSourceModal(CenterableToplevel):
 
         # Widgets
         self._init_widgets()
-
-        # Change placement on screen
-        self._center()
 
     def _handle_user_choice(self, choice: str) -> None:
         if choice == "Add":

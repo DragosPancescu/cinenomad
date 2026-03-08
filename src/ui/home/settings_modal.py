@@ -12,6 +12,7 @@ class SettingsModal(CenterableToplevel):
     def __init__(self, parent: tk.Widget, config_params: dict):
         super().__init__(parent)
         self._parent = parent
+        self.withdraw()
 
         # Configure
         self._config_params = copy.deepcopy(config_params)
@@ -51,9 +52,6 @@ class SettingsModal(CenterableToplevel):
             **self._config_params["CancelButton"]["Design"],
         )
         cancel_button.place(**self._config_params["CancelButton"]["Placement"])
-
-        # Center on parent
-        self._center()
 
     def _build_settings_rows(self) -> None:
         """Builds label + entry rows for each setting."""
