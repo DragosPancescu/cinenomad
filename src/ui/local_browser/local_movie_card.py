@@ -87,7 +87,7 @@ class LocalMovieCard(tk.Frame):
         self._length = tk.Label(
             self._entries_frame,
             font=("Roboto Mono", entries_font_size),
-            text=f"{metadata.get_length_gui_format()}",
+            text=str(metadata.length),
             **self._config_params["Entry"]["Design"],
         )
 
@@ -187,7 +187,7 @@ class LocalMovieCard(tk.Frame):
             self._config_params["Player"],
             self._metadata.full_path,
             self._metadata.full_sub_path,
-            self._metadata.get_length_sec(),
+            int(self._metadata.length.total_seconds()),
         )
         self._player.play()
         self._player.setup_subtitles()

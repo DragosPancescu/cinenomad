@@ -261,15 +261,15 @@ LocalMovieBrowserModal:
 
 SettingsButton:
   Design:
-    width: 40
-    height: 40
+    width: 55
+    height: 55
     image_path: resources/Settings_Button.png
     <<: *appcontrolbutton
   Placement:
     relx: 1
     rely: 1
-    x: -35
-    y: -35
+    x: -15
+    y: -15
     anchor: se
 
 SettingsModal:

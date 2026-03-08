@@ -83,7 +83,6 @@ class App(tk.Tk):
         self.new_connector_modal = AddMovieSourceModal(
             self, self._configs["AddMovieSourceModal"]
         )
-        self.new_connector_modal.withdraw() # Keep it hidden
 
         # Settings button
         self.settings_button = AppControlButton(
@@ -94,7 +93,6 @@ class App(tk.Tk):
 
         # Settings modal (toplevel)
         self.settings_modal = SettingsModal(self, self._configs["SettingsModal"])
-        self.settings_modal.withdraw()
 
         # Version tag
         try:
@@ -113,11 +111,13 @@ class App(tk.Tk):
         """Opens the settings modal with current values from the database."""
         self.settings_modal.refresh()
         self.settings_modal.deiconify()
+        self.settings_modal._center()
         self.settings_modal.focus()
 
     def show_add_new_connector_modal(self) -> None:
         """Makes the 'Add new connector modal' visible and brings the focus to it."""
         self.new_connector_modal.deiconify()
+        self.new_connector_modal._center()
         self.new_connector_modal.focus()
 
     def _place_connectors(self) -> None:
