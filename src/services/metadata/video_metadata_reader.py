@@ -2,6 +2,7 @@ import os
 import re
 import copy
 import base64
+import logging
 
 from datetime import datetime
 
@@ -13,6 +14,8 @@ from langcodes import Language, LanguageTagError
 from torrent_name_parser import TorrentNameParser as TNP
 
 from utils.file_handling import load_yaml_file
+
+logger = logging.getLogger(__name__)
 from services.database import queries, models
 from utils.exceptions import FolderNotFoundException
 from .tmdb_api import (
@@ -56,9 +59,9 @@ class VideoMetadataReader:
                 if file_name.split(".")[-1].lower() in self._accepted_extensions
             ]
         except FolderNotFoundException as exception:
-            print(f"Folder path: {self._folder_path} not found: {exception}")
+            logger.error(f"Folder path: {self._folder_path} not found: {exception}")
         except Exception as exception:
-            print(
+            logger.error(
                 f"Unexpected exception caught while retrieved file names from folder: {self._folder_path}, exception: {exception}"
             )
         return file_names
@@ -77,7 +80,7 @@ class VideoMetadataReader:
         # Extract movie name from file_name
         tnp = TNP()
         movie_name = tnp.parse(file_name).title
-        print(movie_name)
+        logger.debug(f"Parsed movie name: {movie_name}")
 
         season_episode = re.search("[sS][0-9]{1,2}[eE][0-9]{1,2}", file_name)
         is_tvshow = bool(season_episode)
@@ -100,7 +103,7 @@ class VideoMetadataReader:
                 try:
                     tmdb_runtime = details[runtime_key][0] if is_tvshow else details[runtime_key]
                 except Exception as e:
-                    print(f"{e}, id: {search_result['id']}")
+                    logger.warning(f"Could not get runtime for id: {search_result['id']}: {e}")
                     tmdb_runtime = 0
 
                 if abs(int(tmdb_runtime) - runtime_mins) <= 1:
@@ -185,7 +188,7 @@ class VideoMetadataReader:
         """
         video = cv2.VideoCapture(video_file_path)
         if not video.isOpened():
-            print(f"Could not open: {video_file_path}")
+            logger.error(f"Could not open: {video_file_path}")
             return None
 
         # Get position where to capture the screenshot
@@ -200,7 +203,7 @@ class VideoMetadataReader:
 
         res, frame = video.read()
         if not res:
-            print(f"Could not get screenshot of: {video_file_path}")
+            logger.error(f"Could not get screenshot of: {video_file_path}")
             return None
 
         return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -229,7 +232,7 @@ class VideoMetadataReader:
         # Remove metadata from the database that is not in the folder
         for stale_path in db_full_paths - folder_paths:
             queries.delete_video_by_path(stale_path)
-            print(f"Deleted: {stale_path} from database")
+            logger.info(f"Deleted stale entry from database: {stale_path}")
 
         for file_name in folder_paths - db_full_paths:
             # Get file name without extension
@@ -262,7 +265,7 @@ class VideoMetadataReader:
                 try:
                     language = Language.get(extracted_metadata["language"]).display_name()
                 except LanguageTagError as e:
-                    print(e)
+                    logger.warning(f"Unrecognised language tag: {e}")
                     language = extracted_metadata["language"]
             elif tmdb_metadata["original_language"] != "":
                 language = Language.get(

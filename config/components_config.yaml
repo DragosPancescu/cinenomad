@@ -1,4 +1,14 @@
 ---
+# Reusable style anchors
+_DefaultLabel: &defaultLabel
+  background: "#282828"
+  foreground: "#D9D9D9"
+
+_ModalDesign: &modalDesign
+  background: "#282828"
+  highlightthickness: 1
+  highlightbackground: "#D9D9D9"
+
 App:
   background: "#282828"
 
@@ -74,8 +84,7 @@ ConnectorIcon:
 
 ConnectorLabel:
   Design:
-    background: "#282828"
-    foreground: "#D9D9D9"
+    <<: *defaultLabel
   Placement:
     row: 1
     padx: 25
@@ -94,8 +103,7 @@ ConnectorsFrame:
 
 VersionTag:
   Design:
-    background: "#282828"
-    foreground: "#D9D9D9"
+    <<: *defaultLabel
   Placement:
     relx: 0
     rely: 1
@@ -106,9 +114,7 @@ VersionTag:
 AddMovieSourceModal:
   title: "Add new movie source"
   Design:
-    background: "#282828"
-    highlightthickness: 1
-    highlightbackground: "#D9D9D9"
+    <<: *modalDesign
   Buttons:
     Design: &addMovieSourceModalButtonDesign
       highlightthickness: 1
@@ -141,12 +147,9 @@ AddMovieSourceModal:
 ConfirmationModal:
   title: "Confirm"
   Design:
-    background: "#282828"
-    highlightthickness: 1
-    highlightbackground: "#D9D9D9"
+    <<: *modalDesign
   Message:
-    foreground: "#D9D9D9"
-    background: "#282828"
+    <<: *defaultLabel
   YesButton:
     text: "Yes"
     Design:
@@ -189,8 +192,7 @@ LocalMovieBrowserModal:
     <<: *closebutton
   EmptyStateLabel:
     Design:
-      foreground: "#D9D9D9"
-      background: "#282828"
+      <<: *defaultLabel
       justify: center
     Placement:
       relx: 0.5
@@ -201,8 +203,7 @@ LocalMovieBrowserModal:
       background: "#282828"
     Entry:
       Design: &localMovieCardEntryDesign
-        background: "#282828"
-        foreground: "#D9D9D9"
+        <<: *defaultLabel
         justify: left
         anchor: w
     Poster: &poster
@@ -226,8 +227,7 @@ LocalMovieBrowserModal:
         <<: *addMovieSourceModalButtonDesign
     Overview:
       Design:
-        background: "#282828"
-        foreground: "#D9D9D9"
+        <<: *defaultLabel
     Genres:
       Design:
         width: 50
@@ -258,7 +258,7 @@ LocalMovieBrowserModal:
             fg_color: "#282828"
             button_color: "#282828"
             hover: false
-        
+
 SettingsButton:
   Design:
     width: 40
@@ -275,13 +275,10 @@ SettingsButton:
 SettingsModal:
   title: "Settings"
   Design:
-    background: "#282828"
-    highlightthickness: 1
-    highlightbackground: "#D9D9D9"
+    <<: *modalDesign
   Label:
     Design:
-      background: "#282828"
-      foreground: "#D9D9D9"
+      <<: *defaultLabel
       anchor: w
   Entry:
     Design:
@@ -314,4 +311,3 @@ WebBrowserModal:
   title: "Browse Netflix"
   Design:
     background: "#282828"
-...

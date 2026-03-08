@@ -1,7 +1,10 @@
 import json
+import logging
 
 from PIL import Image, ImageTk, UnidentifiedImageError
 import yaml
+
+logger = logging.getLogger(__name__)
 
 
 def read_tk_image(image_path: str) -> ImageTk.PhotoImage | None:
@@ -19,9 +22,9 @@ def read_tk_image(image_path: str) -> ImageTk.PhotoImage | None:
 
         return ImageTk.PhotoImage(pill_img)
     except UnidentifiedImageError as exception:
-        print(f"Error while trying to open image ({image_path}) using PIL: {exception}")
+        logger.error(f"Error while trying to open image ({image_path}) using PIL: {exception}")
     except Exception as exception:
-        print(f"An unexpected error occurred on image ({image_path}): {exception}")
+        logger.error(f"An unexpected error occurred on image ({image_path}): {exception}")
     return None
 
 
@@ -38,13 +41,13 @@ def load_json_file(json_file_path: str) -> dict | list | None:
         with open(json_file_path, encoding="utf_8") as json_f:
             return json.load(json_f)
     except FileNotFoundError:
-        print(f"Error: The file '{json_file_path}' was not found.")
+        logger.error(f"The file '{json_file_path}' was not found.")
     except PermissionError:
-        print(f"Error: Permission denied to read the file '{json_file_path}'.")
+        logger.error(f"Permission denied to read the file '{json_file_path}'.")
     except json.JSONDecodeError as exception:
-        print(f"Error: Failed to decode JSON. {exception}")
+        logger.error(f"Failed to decode JSON from '{json_file_path}': {exception}")
     except Exception as exception:
-        print(f"An unexpected error occurred: {exception}")
+        logger.error(f"An unexpected error occurred reading '{json_file_path}': {exception}")
     return None
 
 
@@ -61,11 +64,11 @@ def load_yaml_file(yaml_file_path: str) -> dict | list | None:
         with open(yaml_file_path, encoding="utf_8") as yaml_f:
             return yaml.safe_load(yaml_f)
     except FileNotFoundError:
-        print(f"Error: The file '{yaml_file_path}' was not found.")
+        logger.error(f"The file '{yaml_file_path}' was not found.")
     except PermissionError:
-        print(f"Error: Permission denied to read the file '{yaml_file_path}'.")
+        logger.error(f"Permission denied to read the file '{yaml_file_path}'.")
     except yaml.YAMLError as exception:
-        print(f"Error: Failed to decode YAML. {exception}")
+        logger.error(f"Failed to decode YAML from '{yaml_file_path}': {exception}")
     except Exception as exception:
-        print(f"An unexpected error occurred: {exception}")
+        logger.error(f"An unexpected error occurred reading '{yaml_file_path}': {exception}")
     return None

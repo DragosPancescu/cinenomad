@@ -89,6 +89,20 @@ class VideoMetadata:
         return None
 
 
+@dataclass(frozen=True)
+class LogEntry:
+    """Model class for a log entry stored in the database."""
+
+    timestamp: str
+    level: str
+    logger_name: str
+    message: str
+    module: str
+    func_name: str
+    line_no: int
+    traceback: str | None
+
+
 @dataclass()
 class Connector:
     """Model class for keeping connector data"""

@@ -1,5 +1,8 @@
 import copy
+import logging
 import tkinter as tk
+
+logger = logging.getLogger(__name__)
 
 from utils.file_handling import read_tk_image
 from utils.events import MouseEvent
@@ -42,7 +45,7 @@ class ConnectorIcon(tk.Button):
                 else self._config_params["highlightbackground"]
             )
         )
-        print(event)
+        logger.debug(f"Connector hover event: {event}")
 
     def _on_click(self, event=None) -> None:
         self.configure(cursor="watch")

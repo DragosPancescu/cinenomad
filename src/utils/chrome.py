@@ -1,6 +1,9 @@
 import subprocess
 import signal
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def open_chrome(url: str, profile: str, *args) -> subprocess.Popen | None:
@@ -26,18 +29,18 @@ def open_chrome(url: str, profile: str, *args) -> subprocess.Popen | None:
 
     # Append the URL
     command.append(url)
-    print(command)
+    logger.debug(f"Opening Chrome with command: {command}")
 
     try:
         # Run the command and return the process
         process = subprocess.Popen(command, start_new_session=True)
         return process
     except FileNotFoundError as exception:
-        print(f"Chrome is not installed: {exception}")
+        logger.error(f"Chrome is not installed: {exception}")
     except subprocess.CalledProcessError as exception:
-        print(f"Failed to open Chrome: {exception}")
+        logger.error(f"Failed to open Chrome: {exception}")
     except Exception as exception:
-        print(f"An error occurred: {exception}")
+        logger.error(f"An error occurred opening Chrome: {exception}")
     return None
 
 
@@ -52,8 +55,8 @@ def close_chrome(process: subprocess.Popen) -> None:
             # Kill the entire process group using the PGID
             pgid = os.getpgid(process.pid)
             os.killpg(pgid, signal.SIGTERM)
-            print("Chrome closed successfully.")
+            logger.info("Chrome closed successfully.")
         except Exception as exception:
-            print(f"An error occurred while closing Chrome: {exception}")
+            logger.error(f"An error occurred while closing Chrome: {exception}")
     else:
-        print("No process found to terminate.")
+        logger.warning("No process found to terminate.")
