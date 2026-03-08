@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from .connection import AppDatabase
 from .models import VideoMetadata, Connector, Setting
 
@@ -20,7 +22,7 @@ def insert_video(metadata: VideoMetadata) -> None:
         """,
         (
             metadata.language,
-            metadata.length,
+            int(metadata.length.total_seconds()),
             metadata.image_path,
             metadata.full_path,
             metadata.full_sub_path,
@@ -62,7 +64,7 @@ def get_all_videos() -> list[VideoMetadata]:
         all_videos_list.append(
             VideoMetadata(
                 language=row[1],
-                length=row[2],
+                length=timedelta(seconds=row[2]),
                 image_path=row[3],
                 full_path=row[4],
                 full_sub_path=row[5],

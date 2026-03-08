@@ -18,7 +18,7 @@ def create_tables() -> None:
                 CREATE TABLE IF NOT EXISTS video_metadata (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     language TEXT NOT NULL,
-                    length TEXT NOT NULL,
+                    length INTEGER NOT NULL,
                     image_path TEXT NOT NULL,
                     full_path TEXT NOT NULL,
                     full_sub_path TEXT NOT NULL,

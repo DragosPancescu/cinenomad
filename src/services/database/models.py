@@ -2,7 +2,7 @@ import re
 import os
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import timedelta
 
 from PIL import Image, ImageTk
 
@@ -12,7 +12,7 @@ class VideoMetadata:
     """Model class for keeping track of a video metadata."""
 
     language: str
-    length: str  # format -> "%H:%M:%S.%f"
+    length: timedelta
     image_path: str
     full_path: str
     full_sub_path: str
@@ -22,43 +22,6 @@ class VideoMetadata:
     tmdb_overview: str
     tmdb_genres: list[str]
     tmdb_poster_path: str
-
-    def get_length_sec(self) -> int:
-        """Methods that returns the video length in seconds
-
-        Returns:
-            int: Number of seconds in the video
-        """
-        time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
-        return int(
-            time_obj.hour * 3600
-            + time_obj.minute * 60
-            + time_obj.second
-            + time_obj.microsecond / 1_000_000
-        )
-
-    def get_length_mins(self) -> int:
-        """Methods that returns the video length in minutes
-
-        Returns:
-            int: Number of minutes in the video
-        """
-        time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
-        return int(
-            time_obj.hour * 60
-            + time_obj.minute
-            + time_obj.second / 3600
-            + time_obj.microsecond / 1_000_000
-        )
-
-    def get_length_gui_format(self) -> str:
-        """Returns the datetime format that appears in the GUI
-
-        Returns:
-            str: Datetime in the following format: %H:%M:%S
-        """
-        time_obj = datetime.strptime(self.length, "%H:%M:%S.%f")
-        return time_obj.strftime("%H:%M:%S")
 
     def get_gui_title(self) -> str:
         """Returns the title string that appears in the GUI

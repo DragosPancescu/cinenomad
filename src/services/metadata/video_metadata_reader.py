@@ -2,8 +2,7 @@ import os
 import re
 import copy
 import base64
-
-from datetime import datetime
+from datetime import timedelta
 
 import cv2
 import numpy as np
@@ -133,13 +132,13 @@ class VideoMetadataReader:
         general_track = list(
             filter(lambda track: track.track_type == "General", media_info.tracks)
         )[0]
-        audio_track = list(
+        audio_tracks = list(
             filter(lambda track: track.track_type == "Audio", media_info.tracks)
-        )[0]
+        )
 
         language = ""
-        if "language" in audio_track.to_data().keys():
-            language = audio_track.to_data()["language"]
+        if audio_tracks and "language" in audio_tracks[0].to_data().keys():
+            language = audio_tracks[0].to_data()["language"]
 
         metadata = copy.deepcopy(general_track.to_data())
         metadata["language"] = language
@@ -243,13 +242,9 @@ class VideoMetadataReader:
             # Get data
             extracted_metadata = self._get_video_file_metadata(file_name)
             
-            time_obj = datetime.strptime(extracted_metadata["other_duration"][3], "%H:%M:%S.%f")
-            runtime_mins = int(
-                time_obj.hour * 60
-                + time_obj.minute
-                + time_obj.second / 3600
-                + time_obj.microsecond / 1_000_000
-            )
+            duration_ms = float(extracted_metadata.get("duration", 0))
+            length = timedelta(milliseconds=duration_ms)
+            runtime_mins = int(length.total_seconds()) // 60
             tmdb_metadata = self._get_tmdb_movie_metadata(file_name_no_ext, runtime_mins)
 
             # Language value priority is as follows:
@@ -294,7 +289,7 @@ class VideoMetadataReader:
             # Add metadata to the database
             metadata = models.VideoMetadata(
                 language=language,
-                length=extracted_metadata["other_duration"][3],
+                length=length,
                 image_path=poster_download_path,
                 full_path=file_name,
                 full_sub_path=sub_path,
