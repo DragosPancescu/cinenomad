@@ -1,8 +1,11 @@
 import os
 import copy
+import logging
 import platform
 import math
 import tkinter as tk
+
+logger = logging.getLogger(__name__)
 
 import vlc
 
@@ -66,7 +69,7 @@ class Player(tk.Toplevel):
         if not os.path.exists(video_path):
             raise FileNotFoundError(f"Video file not found: {video_path}")
 
-        print(f"Initializing Player for {video_path}")
+        logger.debug(f"Initializing Player for {video_path}")
         self._vlc_instance = vlc.Instance(self._vlc_player_config["VlcInstanceOptions"])
         self._player = self._vlc_instance.media_player_new()
 
@@ -167,7 +170,7 @@ class Player(tk.Toplevel):
     def toogle_play_state(self, event=None) -> None:
         self.toogle_controls_visibility()
         state = self._player.get_state()
-        print(f"Toogle state: {state}")
+        logger.debug(f"Toggle state: {state}")
         if state == vlc.State.Playing:
             self.stop()
         else:
@@ -188,37 +191,37 @@ class Player(tk.Toplevel):
                 vlc.MediaSlaveType.subtitle, self._sub_path, True
             )
         else:
-            print(
+            logger.warning(
                 f"Could not find path to subtitle file: {self._sub_path}, trying to find subtitles embedded in the file."
             )
             if self._player.video_get_spu_count() > 0:
                 eng_sub_index = extract_eng_subtitles(self._player)
-                print(f"Setting up subtitle with index: {eng_sub_index}")
+                logger.debug(f"Setting up subtitle with index: {eng_sub_index}")
                 self._player.video_set_spu(eng_sub_index)
 
     def play(self) -> None:
         """Start playback."""
-        print("Starting playback...")
+        logger.debug("Starting playback...")
         self._player.play()
         state = self._player.get_state()
-        print(f"Player state after play: {state}")
+        logger.debug(f"Player state after play: {state}")
         if state != vlc.State.Playing:
-            print("Error: Playback did not start.")
+            logger.error("Playback did not start.")
 
     def stop(self) -> None:
         """Pause playback."""
-        print("Pausing playback.")
+        logger.debug("Pausing playback.")
         self._player.set_pause(1)
 
     def close(self, event=None) -> None:
         """Stop the player and close the widget."""
-        print("Stopping player.")
+        logger.debug("Stopping player.")
 
         # Detach the event handler to avoid callbacks after closing
         self._player.event_manager().event_detach(vlc.EventType.MediaPlayerPositionChanged)
 
         self._player.stop()
-        print(f"Video closed: {self._video_path}")
+        logger.info(f"Video closed: {self._video_path}")
         self._media.release()
         self._vlc_instance.release()
         self._parent.focus()  # Shift focus back to the parent

@@ -1,7 +1,11 @@
+import logging
+
 from datetime import timedelta
 
 from .connection import AppDatabase
-from .models import VideoMetadata, Connector, Setting
+from .models import VideoMetadata, Connector, Setting, LogEntry
+
+logger = logging.getLogger(__name__)
 
 
 def insert_video(metadata: VideoMetadata) -> None:
@@ -56,7 +60,7 @@ def get_all_videos() -> list[VideoMetadata]:
 
     rows = cursor.fetchall()
     if not rows:
-        print("Could not find any videos")
+        logger.debug("Could not find any videos")
         return []
 
     all_videos_list = []
@@ -102,7 +106,7 @@ def get_video_by_path(path: str) -> VideoMetadata | None:
 
     row = cursor.fetchone()
     if row is None:
-        print("Could not find any video with path: {path}")
+        logger.debug(f"Could not find any video with path: {path}")
         return None
 
     return VideoMetadata(
@@ -157,7 +161,7 @@ def get_connectors() -> list[Connector] | None:
 
     rows = cursor.fetchall()
     if not rows:
-        print("Could not find any connectors")
+        logger.debug("Could not find any connectors")
         return None
     
     connectors = []
@@ -194,7 +198,7 @@ def get_setting_value(name: str) -> str | None:
 
     row = cursor.fetchone()
     if row is None:
-        print(f"Could not find setting: {name}")
+        logger.debug(f"Could not find setting: {name}")
         return None
     
     return row[0]
@@ -218,7 +222,7 @@ def get_all_settings() -> list[Setting] | None:
 
     rows = cursor.fetchall()
     if not rows:
-        print("Could not find any settings")
+        logger.debug("Could not find any settings")
         return None
     
     settings = []
@@ -247,5 +251,33 @@ def update_setting_value(name: str, value: str) -> None:
         WHERE name = ?;
         """,
         [value, name],
+    )
+    conn.commit()
+
+
+def insert_log(record: LogEntry) -> None:
+    """Inserts a log entry into the database
+
+    Args:
+        record (LogEntry): Log entry to insert
+    """
+    conn = AppDatabase.get_connection()
+    conn.execute(
+        """
+        INSERT INTO log (
+            timestamp, level, logger_name, message,
+            module, func_name, line_no, traceback
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        [
+            record.timestamp,
+            record.level,
+            record.logger_name,
+            record.message,
+            record.module,
+            record.func_name,
+            record.line_no,
+            record.traceback,
+        ],
     )
     conn.commit()

@@ -1,5 +1,8 @@
 import copy
+import logging
 import tkinter as tk
+
+logger = logging.getLogger(__name__)
 
 from utils.events import KeyEvent
 from ..common.centerable_toplevel import CenterableToplevel
@@ -28,9 +31,9 @@ class AddMovieSourceModal(CenterableToplevel):
 
     def _handle_user_choice(self, choice: str) -> None:
         if choice == "Add":
-            print("Added new movie source")
+            logger.info("Added new movie source")
         else:
-            print("Cancel new movie source")
+            logger.debug("Cancel new movie source")
         self.close()
 
     def _init_widgets(self) -> None:

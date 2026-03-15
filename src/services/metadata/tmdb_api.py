@@ -1,10 +1,13 @@
 import os
 import json
+import logging
 import requests
 
 from typing import Any
 
 from utils.file_handling import load_yaml_file
+
+logger = logging.getLogger(__name__)
 
 
 # Build script global values
@@ -34,10 +37,9 @@ def search_crew_tmdb_api_call(tmdb_id: str, is_tvshow: bool) -> str | None:
 
         response = requests.get(request_url, headers=HEADERS, timeout=5)
         if response.status_code != 200:
-            print(
-                f"Failed to get data for id: {tmdb_id}. HTTP status code: {response.status_code}"
+            logger.error(
+                f"Failed to get data for id: {tmdb_id}. HTTP status code: {response.status_code}. {response.text}"
             )
-            print(response.text)
             return None
 
         response_dict = json.loads(response.text)
@@ -50,12 +52,12 @@ def search_crew_tmdb_api_call(tmdb_id: str, is_tvshow: bool) -> str | None:
 
         director_data = next(directors_iterator, None)
         if not director_data:
-            print(f"Failed to find director for id: {tmdb_id}")
+            logger.warning(f"Failed to find director for id: {tmdb_id}")
             return None
 
         return director_data["name"]
     except Exception as exception:
-        print(
+        logger.error(
             f"Encountered unexpected exception while trying to search crew member on TMDB. Exception: {exception}"
         )
     return None
@@ -78,20 +80,19 @@ def search_movie_tmbd_api_call(movie_name: str, is_tvshow: bool) -> list[dict[st
         response = requests.get(search_url, headers=HEADERS, timeout=5)
 
         if response.status_code != 200:
-            print(
-                f"Failed to get data for {movie_name}. HTTP status code: {response.status_code}"
+            logger.error(
+                f"Failed to get data for {movie_name}. HTTP status code: {response.status_code}. {response.text}"
             )
-            print(response.text)
             return None
 
         response_dict = json.loads(response.text)
 
         if len(response_dict["results"]) == 0:
-            print(f"Query returned no data for: {movie_name}")
+            logger.warning(f"Query returned no data for: {movie_name}")
             return None
         return response_dict["results"]
     except Exception as exception:
-        print(
+        logger.error(
             f"Encountered unexpected exception while trying to search movie on TMDB. Exception: {exception}"
         )
     return None
@@ -104,16 +105,15 @@ def get_movie_details_api_call(tmdb_id: str, is_tvshow: bool) -> dict[str, Any]:
         response = requests.get(details_url, headers=HEADERS, timeout=5)
 
         if response.status_code != 200:
-            print(
-                f"Failed to get details for id: {tmdb_id}. HTTP status code: {response.status_code}"
+            logger.error(
+                f"Failed to get details for id: {tmdb_id}. HTTP status code: {response.status_code}. {response.text}"
             )
-            print(response.text)
             return None
 
         response_dict = json.loads(response.text)
         return response_dict
     except Exception as exception:
-        print(
+        logger.error(
             f"Encountered unexpected exception while trying to search details for id: {tmdb_id}. Exception: {exception}"
         )
     return None
@@ -153,7 +153,7 @@ def get_tmdb_metadata(movie_data: dict, is_tvshow: bool) -> dict:
         }
         return tmdb_metadata
     except Exception as exception:
-        print(
+        logger.error(
             f"Encountered unexpected exception while trying to retrieve needed metadata from TMDB data. Exception: {exception}"
         )
     return empty_output
@@ -170,15 +170,14 @@ def get_tmdb_configuration() -> dict | list | None:
         response = requests.get(config_url, headers=HEADERS, timeout=5)
 
         if response.status_code != 200:
-            print(
-                f"Failed to fetch configuration. HTTP status code: {response.status_code}"
+            logger.error(
+                f"Failed to fetch configuration. HTTP status code: {response.status_code}. {response.text}"
             )
-            print(response.text)
             return None
 
         return response.json()
     except Exception as exception:
-        print(
+        logger.error(
             f"Encountered unexpected exception while trying to retrieve tmdb configuration. Exception: {exception}"
         )
     return None
@@ -207,16 +206,15 @@ def download_tmdb_poster(poster_path: str, download_location: str, tmdb_configur
         response = requests.get(poster_url, timeout=5)
 
         if response.status_code != 200:
-            print(
-                f"Failed to download poster. HTTP status code: {response.status_code}"
+            logger.error(
+                f"Failed to download poster. HTTP status code: {response.status_code}. {response.text}"
             )
-            print(response.text)
             return
 
         with open(download_location, "wb") as file:
             file.write(response.content)
-            print(f"Poster saved to: {download_location}")
+            logger.debug(f"Poster saved to: {download_location}")
     except Exception as exception:
-        print(
+        logger.error(
             f"Encountered unexpected exception while trying to save poster. Exception: {exception}"
         )

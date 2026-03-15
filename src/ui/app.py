@@ -1,6 +1,9 @@
 import platform
+import logging
 import subprocess
 import tkinter as tk
+
+logger = logging.getLogger(__name__)
 import tkinter.font as tkfont
 from importlib.metadata import version, PackageNotFoundError
 
@@ -53,7 +56,7 @@ class App(tk.Tk):
         self.sleep_button = AppControlButton(
             self, self._configs["SleepButton"]["Design"]
         )
-        self.sleep_button.configure(command=lambda: print("Sleep"))
+        self.sleep_button.configure(command=lambda: logger.debug("Sleep button pressed"))
         self.sleep_button.place(**self._configs["SleepButton"]["Placement"])
 
         # New Connector button
@@ -161,7 +164,7 @@ class App(tk.Tk):
         if not modal.result:
             return
 
-        print("App closed.")
+        logger.info("App closed.")
         self.quit()
         self.destroy()
 

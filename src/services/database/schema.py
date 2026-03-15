@@ -50,6 +50,22 @@ def create_tables() -> None:
                 );
                 """
             )
+
+            conn.execute(
+                """
+                CREATE TABLE IF NOT EXISTS log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp TEXT NOT NULL,
+                    level TEXT NOT NULL,
+                    logger_name TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    module TEXT,
+                    func_name TEXT,
+                    line_no INTEGER,
+                    traceback TEXT
+                );
+                """
+            )
     except (sqlite3.OperationalError, sqlite3.IntegrityError) as e:
         raise RuntimeError(f"Could not create tables: {e}") from e
 
