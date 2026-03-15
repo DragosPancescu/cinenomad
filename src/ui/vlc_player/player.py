@@ -93,6 +93,7 @@ class Player(tk.Toplevel):
             self.go_forward,
             self.go_backward,
             self.seek,
+            self.close,
             self._total_seconds,
         )
 

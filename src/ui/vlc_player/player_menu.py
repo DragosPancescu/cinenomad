@@ -22,6 +22,7 @@ class PlayerMenu(tk.Toplevel):
         go_forward_callback: Callable,
         go_backwards_callback: Callable,
         timeslider_callback: Callable,
+        close_callback: Callable,
         total_seconds: int,
     ):
         super().__init__(parent)
@@ -85,6 +86,15 @@ class PlayerMenu(tk.Toplevel):
             **self._config_params["Buttons"]["Design"],
         )
         self._backwards_button.configure(command=go_backwards_callback)
+
+        # Configure Close button
+        self._close_button = tk.Button(
+            self,
+            text="Close",
+            fg="white",
+            **self._config_params["Buttons"]["Design"],
+        )
+        self._close_button.configure(command=close_callback)
 
         self._timeslider = ctk.CTkSlider(
             self,
@@ -172,7 +182,7 @@ class PlayerMenu(tk.Toplevel):
         self._forward_button.grid(row=0, column=4, padx=5, pady=(35, 10))
         self._backwards_button.grid(row=0, column=5, padx=5, pady=(35, 10))
         tk.Label(self).grid(row=0, column=6, padx=5, pady=(35, 10))
-        tk.Label(self).grid(row=0, column=7, padx=5, pady=(35, 10))
+        self._close_button.grid(row=0, column=7, padx=5, pady=(35, 10))
 
         self._current_time.grid(row=1, column=0, pady=(20, 35))
         self._timeslider.grid(
